@@ -154,7 +154,7 @@ export const theme: ThemeConfig = {
     },
     pwa: {
         enable: true,
-        name: "Isla的博客",
-        short_name: "Isla",
+        name: "Isla9999的博客",
+        short_name: "Isla9999",
     }
 };
