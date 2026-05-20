@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Isla博客 - 管理面板</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+.nav { background: #1a1a2e; color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+.nav h1 { font-size: 18px; }
+.nav a { color: #e94560; text-decoration: none; font-size: 14px; }
+.container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.tab { padding: 8px 20px; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+.tab.active { background: #e94560; color: #fff; border-color: #e94560; }
+.card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card h2 { font-size: 16px; margin-bottom: 16px; color: #1a1a2e; }
+label { display: block; font-size: 13px; color: #666; margin-bottom: 4px; margin-top: 12px; }
+input, select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+input:focus, select:focus { border-color: #e94560; }
+textarea { width: 100%; min-height: 400px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; line-height: 1.6; resize: vertical; outline: none; }
+textarea:focus { border-color: #e94560; }
+.btn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #e94560; color: #fff; }
+.btn-primary:hover { background: #c73e54; }
+.btn-secondary { background: #f0f0f0; color: #333; }
+.btn-secondary:hover { background: #e0e0e0; }
+.btn-danger { background: #ff6b6b; color: #fff; }
+.btn-danger:hover { background: #ee5a5a; }
+.actions { display: flex; gap: 8px; margin-top: 16px; }
+.post-list { list-style: none; }
+.post-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.post-item:last-child { border-bottom: none; }
+.post-title { font-weight: 500; }
+.post-date { font-size: 12px; color: #999; }
+.preview { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 12px; min-height: 200px; max-height: 400px; overflow-y: auto; }
+.preview h1, .preview h2, .preview h3 { margin: 12px 0 8px; }
+.preview p { margin: 8px 0; line-height: 1.8; }
+.preview code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.preview pre { background: #1a1a2e; color: #eee; padding: 16px; border-radius: 8px; overflow-x: auto; }
+.preview pre code { background: none; color: inherit; }
+.preview img { max-width: 100%; border-radius: 8px; }
+.preview blockquote { border-left: 3px solid #e94560; padding-left: 12px; color: #666; margin: 12px 0; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .split { grid-template-columns: 1fr; } }
+.hidden { display: none; }
+.msg { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+.msg-success { background: #d4edda; color: #155724; }
+.msg-error { background: #f8d7da; color: #721c24; }
+.tag { display: inline-block; background: #e94560; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; margin: 2px; }
+.help { font-size: 12px; color: #999; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <h1>📝 Isla的博客 - 管理面板</h1>
+  <a href="/zh-CN/" target="_blank">查看博客 →</a>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('write')">✍️ 写文章</div>
+    <div class="tab" onclick="showTab('posts')">📋 文章列表</div>
+    <div class="tab" onclick="showTab('settings')">⚙️ 博客配置</div>
+    <div class="tab" onclick="showTab('help')">❓ 使用帮助</div>
+  </div>
+
+  <!-- 写文章 -->
+  <div id="tab-write">
+    <div class="card">
+      <h2>文章信息</h2>
+      <label>文章标题</label>
+      <input type="text" id="post-title" placeholder="我的第一篇文章">
+      <label>URL 路径（英文）</label>
+      <input type="text" id="post-slug" placeholder="my-first-post">
+      <div class="help">用于生成链接，如 /posts/my-first-post</div>
+      <label>分类</label>
+      <input type="text" id="post-category" placeholder="生活">
+      <label>置顶权重</label>
+      <input type="number" id="post-sticky" value="0" min="0">
+      <div class="help">数字越大越靠前，0 不置顶</div>
+    </div>
+
+    <div class="card">
+      <h2>文章内容（Markdown）</h2>
+      <div class="split">
+        <div>
+          <label>编辑</label>
+          <textarea id="post-content" placeholder="# 标题
+
+正文内容...
+
+## 二级标题
+
+- 列表项1
+- 列表项2
+
+**加粗** *斜体* `代码`
+
+```js
+console.log('Hello!');
+```"></textarea>
+        </div>
+        <div>
+          <label>预览</label>
+          <div id="preview" class="preview"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="generatePost()">📄 生成文章文件</button>
+        <button class="btn btn-secondary" onclick="clearEditor()">🗑️ 清空</button>
+      </div>
+    </div>
+
+    <div id="output-area" class="hidden">
+      <div class="card">
+        <h2>生成结果</h2>
+        <div id="msg-area"></div>
+        <label>生成的 Markdown 文件</label>
+        <textarea id="output-md" readonly style="min-height:120px;font-size:12px;"></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="downloadFile()">💾 下载文件</button>
+          <button class="btn btn-secondary" onclick="copyToClipboard()">📋 复制到剪贴板</button>
+        </div>
+        <div class="help" style="margin-top:12px;">
+          下载后把文件放到 <code>content/blog/zh-CN/</code> 目录，然后推送到 GitHub 即可。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 文章列表 -->
+  <div id="tab-posts" class="hidden">
+    <div class="card">
+      <h2>已有文章</h2>
+      <ul class="post-list" id="post-list">
+        <li class="post-item">
+          <div>
+            <span class="post-title">你好世界</span>
+            <br><span class="post-date">2026-05-20 · <span class="tag">生活</span></span>
+          </div>
+          <div>
+            <button class="btn btn-secondary" onclick="loadPost('hello-world')">编辑</button>
+          </div>
+        </li>
+      </ul>
+      <div class="help">文章存储在 content/blog/zh-CN/ 目录中。</div>
+    </div>
+  </div>
+
+  <!-- 博客配置 -->
+  <div id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>站点配置</h2>
+      <label>博客标题</label>
+      <input type="text" id="cfg-title" value="Isla的博客">
+      <label>副标题</label>
+      <input type="text" id="cfg-subtitle" value="生命不息，折腾不止">
+      <label>作者名</label>
+      <input type="text" id="cfg-author" value="Isla">
+      <label>GitHub 地址</label>
+      <input type="text" id="cfg-github" value="https://github.com/Isla9999-tech">
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig()">💾 保存配置</button>
+      </div>
+      <div class="help" style="margin-top:12px;">
+        修改后需要重新推送到 GitHub 生效。配置文件位于 <code>src/config.ts</code> 和 <code>src/theme.ts</code>。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>文章模板</h2>
+      <p>快速复制常用模板：</p>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="insertTemplate('basic')">📝 基础模板</button>
+        <button class="btn btn-secondary" onclick="insertTemplate('code')">💻 代码教程模板</button>
+        <button class="btn btn-secondary" onclick="insertTemplate('photo')">📷 图文模板</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用帮助 -->
+  <div id="tab-help" class="hidden">
+    <div class="card">
+      <h2>📖 如何发布文章</h2>
+      <ol style="line-height:2;padding-left:20px;">
+        <li>在「写文章」页面填写标题、分类、正文</li>
+        <li>点击「生成文章文件」预览效果</li>
+        <li>点击「下载文件」获取 <code>.md</code> 文件</li>
+        <li>把文件放到项目的 <code>content/blog/zh-CN/</code> 目录</li>
+        <li>推送到 GitHub：<code>git add . && git commit -m "新文章" && git push</code></li>
+        <li>Cloudflare Pages 自动部署，1-2 分钟后生效</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>🖼️ 如何添加图片</h2>
+      <ol style="line-height:2;padding-left:20px;">
+        <li>把图片放到 <code>public/img/</code> 目录</li>
+        <li>在文章中使用：<code>![描述](/img/图片名.jpg)</code></li>
+        <li>也可以直接用网络图片链接</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>🔗 如何管理友链</h2>
+      <p>编辑 <code>content/link.zh-CN.json</code> 文件，格式：</p>
+      <pre style="background:#f5f5f5;padding:12px;border-radius:8px;font-size:13px;margin-top:8px;">[{
+  "class_name": "友情链接",
+  "class_desc": "推荐的网站",
+  "link_list": [
+    {
+      "name": "网站名",
+      "link": "https://example.com",
+      "avatar": "https://example.com/avatar.png",
+      "desc": "网站描述"
+    }
+  ]
+}]</pre>
+    </div>
+    <div class="card">
+      <h2>💬 如何管理留言板</h2>
+      <p>编辑 <code>content/board/zh-cn.md</code> 文件即可。支持评论系统（Waline）需要额外配置。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// 简易 Markdown 转 HTML
+function md2html(md) {
+  return md
+    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+    .replace(/^- (.*$)/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    .replace(/^(.+)$/gm, function(m) {
+      if (m.startsWith('<h') || m.startsWith('<ul') || m.startsWith('<li') || m.startsWith('<pre') || m.startsWith('<blockquote') || m.startsWith('<img')) return m;
+      return m;
+    });
+}
+
+// 实时预览
+document.getElementById('post-content').addEventListener('input', function() {
+  document.getElementById('preview').innerHTML = '<p>' + md2html(this.value) + '</p>';
+});
+
+// Tab 切换
+function showTab(name) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// 自动生成 slug
+document.getElementById('post-title').addEventListener('input', function() {
+  const slug = this.value
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  document.getElementById('post-slug').value = slug;
+});
+
+// 生成文章
+function generatePost() {
+  const title = document.getElementById('post-title').value.trim();
+  const slug = document.getElementById('post-slug').value.trim();
+  const category = document.getElementById('post-category').value.trim() || '未分类';
+  const sticky = document.getElementById('post-sticky').value || '0';
+  const content = document.getElementById('post-content').value;
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  if (!title) { showMsg('请填写文章标题', 'error'); return; }
+  if (!slug) { showMsg('请填写URL路径', 'error'); return; }
+
+  const md = `---
+title: ${title}
+abbrlink: ${slug}
+categories: ${category}
+date: ${now}
+updated: ${now}
+sticky: ${sticky}
+---
+
+${content}`;
+
+  document.getElementById('output-md').value = md;
+  document.getElementById('output-area').classList.remove('hidden');
+  showMsg('✅ 文章文件已生成！', 'success');
+}
+
+function showMsg(text, type) {
+  const area = document.getElementById('msg-area');
+  area.innerHTML = `<div class="msg msg-${type}">${text}</div>`;
+  setTimeout(() => area.innerHTML = '', 3000);
+}
+
+function clearEditor() {
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-slug').value = '';
+  document.getElementById('post-category').value = '';
+  document.getElementById('post-sticky').value = '0';
+  document.getElementById('post-content').value = '';
+  document.getElementById('preview').innerHTML = '';
+  document.getElementById('output-area').classList.add('hidden');
+}
+
+function downloadFile() {
+  const md = document.getElementById('output-md').value;
+  const slug = document.getElementById('post-slug').value || 'post';
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = slug + '.md';
+  a.click();
+}
+
+function copyToClipboard() {
+  const md = document.getElementById('output-md').value;
+  navigator.clipboard.writeText(md).then(() => showMsg('已复制到剪贴板！', 'success'));
+}
+
+// 文章模板
+function insertTemplate(type) {
+  showTab('write');
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  
+  const templates = {
+    basic: `## 引言
+
+在这里写引言内容。
+
+## 正文
+
+这是正文部分。
+
+### 小标题
+
+详细内容...
+
+## 总结
+
+总结内容。`,
+    code: `## 介绍
+
+今天来学习 XXX。
+
+## 代码示例
+
+\`\`\`javascript
+function hello() {
+  console.log('Hello World!');
+}
+\`\`\`
+
+## 运行结果
+
+输出：
+
+\`\`\`
+Hello World!
+\`\`\`
+
+## 注意事项
+
+- 注意点1
+- 注意点2`,
+    photo: `## 前言
+
+最近拍了一些照片，分享给大家。
+
+![风景照](/img/photo1.jpg)
+
+*拍摄于 XXX*
+
+## 更多照片
+
+![照片2](/img/photo2.jpg)
+
+> 文字说明`
+  };
+  
+  document.getElementById('post-content').value = templates[type] || '';
+  document.getElementById('preview').innerHTML = '<p>' + md2html(templates[type]) + '</p>';
+}
+
+function loadPost(slug) {
+  showMsg('请直接编辑 content/blog/zh-CN/' + slug + '.md 文件', 'success');
+}
+
+function saveConfig() {
+  showMsg('配置需要手动修改 src/config.ts 和 src/theme.ts 文件', 'success');
+}
+</script>
+
+</body>
+</html>
