@@ -124,7 +124,8 @@ console.log('Hello!');
         </div>
       </div>
       <div class="actions">
-        <button class="btn btn-primary" onclick="generatePost()">📄 生成文章文件</button>
+        <button class="btn btn-primary" onclick="saveToGitHub()">🚀 保存到 GitHub</button>
+        <button class="btn btn-secondary" onclick="generatePost()">📄 生成文件下载</button>
         <button class="btn btn-secondary" onclick="clearEditor()">🗑️ 清空</button>
       </div>
     </div>
@@ -159,6 +160,18 @@ console.log('Hello!');
 
   <!-- 博客配置 -->
   <div id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>🔑 GitHub Token（必填）</h2>
+      <label>Personal Access Token</label>
+      <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
+      <div class="help">去 GitHub → Settings → Developer settings → Personal access tokens 创建，勾选 repo 权限。Token 只保存在浏览器本地。</div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveToken()">💾 保存 Token</button>
+        <button class="btn btn-secondary" onclick="testToken()">🔍 测试连接</button>
+      </div>
+      <div id="token-status" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+
     <div class="card">
       <h2>站点配置</h2>
       <label>博客标题</label>
@@ -427,8 +440,9 @@ async function loadPostList() {
           <span class="post-title">${p.title || p.name}</span>
           <br><span class="post-date">${p.date || ''}</span>
         </div>
-        <div>
+        <div style="display:flex;gap:6px;">
           <button class="btn btn-secondary" onclick="editPost('${p.name}')">✏️ 编辑</button>
+          <button class="btn btn-danger" onclick="deletePost('${p.name}')" style="font-size:12px;padding:4px 10px;">🗑️</button>
         </div>
       </li>
     `).join('');
@@ -510,6 +524,164 @@ if (sessionStorage.getItem('admin_auth') === '1') {
   document.getElementById('login-page').style.display = 'none';
   document.getElementById('admin-panel').style.display = 'block';
 }
+
+// ===== GitHub API =====
+const REPO = 'Isla9999-tech/my-blog-fly';
+const BRANCH = 'master';
+
+function getToken() { return localStorage.getItem('gh_token') || ''; }
+function saveToken() {
+  const t = document.getElementById('gh-token').value.trim();
+  if (!t) { showTokenStatus('请输入 Token', 'error'); return; }
+  localStorage.setItem('gh_token', t);
+  showTokenStatus('✅ Token 已保存', 'success');
+}
+async function testToken() {
+  const t = getToken();
+  if (!t) { showTokenStatus('请先保存 Token', 'error'); return; }
+  try {
+    const r = await fetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${t}` } });
+    if (!r.ok) throw new Error('Token 无效');
+    const d = await r.json();
+    showTokenStatus(`✅ 连接成功！登录用户: ${d.login}`, 'success');
+  } catch (e) { showTokenStatus('❌ ' + e.message, 'error'); }
+}
+function showTokenStatus(msg, type) {
+  const el = document.getElementById('token-status');
+  el.style.color = type === 'error' ? '#c00' : '#090';
+  el.textContent = msg;
+}
+
+// 页面加载时恢复 Token
+if (localStorage.getItem('gh_token')) document.getElementById('gh-token').value = '********';
+
+async function saveToGitHub() {
+  const t = getToken();
+  if (!t) { showMsg('请先在设置页面配置 GitHub Token！', 'error'); return; }
+
+  const title = document.getElementById('post-title').value.trim();
+  const slug = document.getElementById('post-slug').value.trim();
+  const category = document.getElementById('post-category').value.trim() || '未分类';
+  const sticky = document.getElementById('post-sticky').value || '0';
+  const content = document.getElementById('post-content').value;
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  if (!title) { showMsg('请填写文章标题', 'error'); return; }
+  if (!slug) { showMsg('请填写URL路径', 'error'); return; }
+
+  const md = `---\ntitle: ${title}\nabbrlink: ${slug}\ncategories: ${category}\ndate: ${now}\nupdated: ${now}\nsticky: ${sticky}\n---\n\n${content}`;
+  const path = `content/blog/zh-CN/${slug}.md`;
+
+  showMsg('正在保存到 GitHub...', 'success');
+
+  try {
+    // 先检查文件是否已存在（获取 SHA）
+    let sha = null;
+    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+      headers: { Authorization: `Bearer ${t}` }
+    });
+    if (checkRes.ok) {
+      const data = await checkRes.json();
+      sha = data.sha;
+    }
+
+    // 创建或更新文件
+    const body = {
+      message: sha ? `Update post: ${title}` : `New post: ${title}`,
+      content: btoa(unescape(encodeURIComponent(md))),
+      branch: BRANCH
+    };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${t}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || '保存失败');
+    }
+
+    // 同时更新 posts.json
+    await updatePostsJson(t, slug, title, now);
+
+    showMsg(`✅ 已保存到 GitHub！Cloudflare 将自动部署。`, 'success');
+  } catch (e) {
+    showMsg('❌ 保存失败: ' + e.message, 'error');
+  }
+}
+
+async function updatePostsJson(token, slug, title, date) {
+  try {
+    // 获取当前 posts.json
+    let posts = [];
+    let sha = null;
+    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (checkRes.ok) {
+      const data = await checkRes.json();
+      sha = data.sha;
+      posts = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+    }
+
+    // 更新列表
+    const existing = posts.findIndex(p => p.name === slug + '.md');
+    const entry = { name: slug + '.md', title: title, date: date };
+    if (existing >= 0) posts[existing] = entry;
+    else posts.push(entry);
+
+    const body = {
+      message: `Update posts.json: ${title}`,
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2)))),
+      branch: BRANCH
+    };
+    if (sha) body.sha = sha;
+
+    await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+  } catch (e) { console.error('更新 posts.json 失败:', e); }
+}
+
+// 删除文章
+deletePost = async function(filename) {
+  const t = getToken();
+  if (!t) { showMsg('请先配置 GitHub Token', 'error'); return; }
+  if (!confirm('确定删除 ' + filename + '？此操作不可撤销！')) return;
+
+  try {
+    const path = `content/blog/zh-CN/${filename}`;
+    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+      headers: { Authorization: `Bearer ${t}` }
+    });
+    if (!checkRes.ok) throw new Error('文件不存在');
+    const data = await checkRes.json();
+
+    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${t}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: `Delete post: ${filename}`, sha: data.sha, branch: BRANCH })
+    });
+
+    if (!res.ok) throw new Error('删除失败');
+    showMsg('✅ 已删除: ' + filename, 'success');
+    loadPostList();
+  } catch (e) { showMsg('❌ ' + e.message, 'error'); }
+};
 </script>
 
 </body>
