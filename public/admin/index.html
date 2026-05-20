@@ -491,7 +491,14 @@ async function editPost(filename) {
 document.addEventListener('DOMContentLoaded', loadPostList);
 
 function saveConfig() {
-  showMsg('配置需要手动修改 src/config.ts 和 src/theme.ts 文件', 'success');
+  const area = document.getElementById('msg-area');
+  area.innerHTML = `
+    <div class="msg msg-success">
+      点击链接在 GitHub 上编辑配置：<br>
+      <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/config.ts" target="_blank" style="color:#e94560;font-weight:600;">📝 config.ts（标题、副标题、作者）</a><br>
+      <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/theme.ts" target="_blank" style="color:#e94560;font-weight:600;">🎨 theme.ts（主题、头像、社交链接）</a>
+    </div>
+  `;
 }
 </script>
 
