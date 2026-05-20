@@ -54,6 +54,21 @@ textarea:focus { border-color: #e94560; }
 </head>
 <body>
 
+<!-- 登录页面 -->
+<div id="login-page" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);">
+  <div style="background:#fff;border-radius:16px;padding:40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+    <h2 style="margin-bottom:8px;color:#1a1a2e;">管理面板</h2>
+    <p style="color:#999;font-size:13px;margin-bottom:24px;">请输入管理员密码</p>
+    <input type="password" id="login-pwd" placeholder="输入密码" style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;text-align:center;margin-bottom:16px;" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()" style="width:100%;padding:12px;background:#e94560;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600;">登录</button>
+    <div id="login-error" style="color:#e94560;font-size:13px;margin-top:12px;display:none;">密码错误</div>
+  </div>
+</div>
+
+<!-- 主面板（默认隐藏） -->
+<div id="admin-panel" style="display:none;">
+
 <div class="nav">
   <h1>📝 Isla的博客 - 管理面板</h1>
   <a href="/zh-CN/" target="_blank">查看博客 →</a>
@@ -216,6 +231,8 @@ console.log('Hello!');
     </div>
   </div>
 </div>
+
+</div> <!-- /admin-panel -->
 
 <script>
 // 简易 Markdown 转 HTML
@@ -462,6 +479,37 @@ document.addEventListener('DOMContentLoaded', loadPostList);
 
 function saveConfig() {
   showMsg('配置需要手动修改 src/config.ts 和 src/theme.ts 文件', 'success');
+}
+</script>
+
+<script>
+// ===== 登录验证 =====
+const PWD_HASH = '3d19b3996c5f62a0e11a6256a73dab834e95285ecf746336622ff87b3b6f34e6'; // 默认密码: isla9999
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function doLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  const hash = await sha256(pwd);
+  if (hash === PWD_HASH) {
+    sessionStorage.setItem('admin_auth', '1');
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+  } else {
+    const err = document.getElementById('login-error');
+    err.style.display = 'block';
+    err.textContent = '密码错误，请重试';
+    document.getElementById('login-pwd').value = '';
+  }
+}
+
+// 检查是否已登录
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
 }
 </script>
 
