@@ -1,0 +1,14 @@
+[
+  {
+    "class_name": "友情链接",
+    "class_desc": "欢迎互换友链",
+    "link_list": [
+      {
+        "name": "Astro",
+        "link": "https://astro.build",
+        "avatar": "https://astro.build/favicon.svg",
+        "descr": "Astro 框架官网"
+      }
+    ]
+  }
+]

@@ -23,12 +23,12 @@ const link = linkData[lang];
 let pageContent = '';
 if (link) {
   let result = "";
-  link.forEach((i) => {
+  link.forEach((i: any) => {
     const className = i.class_name ? `<h2>${i.class_name}</h2>` : "";
     const classDesc = i.class_desc ? `<div class="flink-desc">${i.class_desc}</div>` : "";
 
     let listResult = "";
-    i.link_list.forEach((j) => {
+    i.link_list.forEach((j: any) => {
       listResult += `
         <div class="flink-list-item">
           <a href="${j.link}" title="${j.name}" target="_blank">

@@ -1,0 +1,14 @@
+[
+  {
+    "class_name": "Friends",
+    "class_desc": "Welcome to exchange links",
+    "link_list": [
+      {
+        "name": "Astro",
+        "link": "https://astro.build",
+        "avatar": "https://astro.build/favicon.svg",
+        "descr": "Astro Framework"
+      }
+    ]
+  }
+]
