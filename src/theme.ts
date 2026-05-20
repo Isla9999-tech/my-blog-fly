@@ -43,7 +43,7 @@ export const theme: ThemeConfig = {
         source: 1,
         pace_css_url: null
     },
-    favicon: "/img/avatar.png",
+    favicon: "/favicon.ico",
     aside: {
         enable: true,
         hide: false,
