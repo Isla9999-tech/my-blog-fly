@@ -1,10 +1,10 @@
 import type { Language, SiteConfig } from './types';
 
 const configZhCN = {
-    title: "Isla9999的博客",
+    title: "Isla的博客",
     description: "生命不息，折腾不止",
     keywords: "博客,技术,生活",
-    author: "Isla9999",
+    author: "Isla",
     copy: {
         enable: true,
         copyright: {
