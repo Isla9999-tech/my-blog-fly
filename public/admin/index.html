@@ -184,6 +184,7 @@ console.log('Hello!');
       <input type="text" id="cfg-github" value="https://github.com/Isla9999-tech">
       <div class="actions">
         <button class="btn btn-primary" onclick="saveConfig()">💾 保存配置</button>
+        <div id="cfg-msg" style="margin-top:8px;font-size:13px;"></div>
       </div>
       <div class="help" style="margin-top:12px;">
         修改后需要重新推送到 GitHub 生效。配置文件位于 <code>src/config.ts</code> 和 <code>src/theme.ts</code>。
@@ -491,13 +492,11 @@ async function editPost(filename) {
 document.addEventListener('DOMContentLoaded', loadPostList);
 
 function saveConfig() {
-  const area = document.getElementById('msg-area');
-  area.innerHTML = `
-    <div class="msg msg-success">
-      点击链接在 GitHub 上编辑配置：<br>
-      <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/config.ts" target="_blank" style="color:#e94560;font-weight:600;">📝 config.ts（标题、副标题、作者）</a><br>
-      <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/theme.ts" target="_blank" style="color:#e94560;font-weight:600;">🎨 theme.ts（主题、头像、社交链接）</a>
-    </div>
+  const el = document.getElementById('cfg-msg');
+  el.innerHTML = `
+    点击链接在 GitHub 上编辑配置：<br>
+    <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/config.ts" target="_blank" style="color:#e94560;font-weight:600;">📝 config.ts（标题、副标题、作者）</a><br>
+    <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/theme.ts" target="_blank" style="color:#e94560;font-weight:600;">🎨 theme.ts（主题、头像、社交链接）</a>
   `;
 }
 </script>
