@@ -491,13 +491,58 @@ async function editPost(filename) {
 // 页面加载时获取文章列表
 document.addEventListener('DOMContentLoaded', loadPostList);
 
-function saveConfig() {
+async function saveConfig() {
+  const t = getToken();
+  if (!t) { showCfgMsg('请先配置 GitHub Token！', 'error'); return; }
+
+  const title = document.getElementById('cfg-title').value.trim();
+  const subtitle = document.getElementById('cfg-subtitle').value.trim();
+  const author = document.getElementById('cfg-author').value.trim();
+  const github = document.getElementById('cfg-github').value.trim();
+
+  showCfgMsg('正在保存...', 'success');
+
+  try {
+    // 1. 获取当前 config.ts
+    const filePath = 'src/config.ts';
+    const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+      headers: { Authorization: `Bearer ${t}` }
+    });
+    if (!fileRes.ok) throw new Error('获取 config.ts 失败');
+    const fileData = await fileRes.json();
+    let content = decodeURIComponent(escape(atob(fileData.content)));
+
+    // 2. 替换中文配置
+    content = content.replace(/title: "[^"]*"/, `title: "${title}"`);
+    content = content.replace(/description: "[^"]*"/, `description: "${subtitle}"`);
+    content = content.replace(/author: "[^"]*"/, `author: "${author}"`);
+
+    // 3. 提交更新
+    const body = {
+      message: `Update config: ${title}`,
+      content: btoa(unescape(encodeURIComponent(content))),
+      sha: fileData.sha,
+      branch: BRANCH
+    };
+
+    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
+
+    showCfgMsg('✅ 配置已保存！Cloudflare 将自动部署。', 'success');
+  } catch (e) {
+    showCfgMsg('❌ 保存失败: ' + e.message, 'error');
+  }
+}
+
+function showCfgMsg(msg, type) {
   const el = document.getElementById('cfg-msg');
-  el.innerHTML = `
-    点击链接在 GitHub 上编辑配置：<br>
-    <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/config.ts" target="_blank" style="color:#e94560;font-weight:600;">📝 config.ts（标题、副标题、作者）</a><br>
-    <a href="https://github.com/Isla9999-tech/my-blog-fly/edit/master/src/theme.ts" target="_blank" style="color:#e94560;font-weight:600;">🎨 theme.ts（主题、头像、社交链接）</a>
-  `;
+  el.style.color = type === 'error' ? '#c00' : '#090';
+  el.textContent = msg;
 }
 </script>
 
