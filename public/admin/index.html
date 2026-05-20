@@ -405,31 +405,30 @@ Hello World!
   document.getElementById('preview').innerHTML = '<p>' + md2html(templates[type]) + '</p>';
 }
 
-// 从 GitHub 加载文章列表
+// 从本地 JSON 加载文章列表，编辑用 raw.githubusercontent.com
 const REPO = 'Isla9999-tech/my-blog-fly';
 const BRANCH = 'master';
-const CONTENT_DIR = 'content/blog/zh-CN';
+const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/${BRANCH}`;
 
 async function loadPostList() {
   const list = document.getElementById('post-list');
   list.innerHTML = '<li style="padding:12px;color:#999;">加载中...</li>';
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${CONTENT_DIR}?ref=${BRANCH}`);
+    const res = await fetch('/admin/posts.json?' + Date.now());
     if (!res.ok) throw new Error('获取失败');
-    const files = await res.json();
-    const mdFiles = files.filter(f => f.name.endsWith('.md'));
-    if (mdFiles.length === 0) {
+    const posts = await res.json();
+    if (!posts.length) {
       list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>';
       return;
     }
-    list.innerHTML = mdFiles.map(f => `
+    list.innerHTML = posts.map(p => `
       <li class="post-item">
         <div>
-          <span class="post-title">${f.name.replace('.md','')}</span>
-          <br><span class="post-date">${f.path}</span>
+          <span class="post-title">${p.title || p.name}</span>
+          <br><span class="post-date">${p.date || ''}</span>
         </div>
         <div>
-          <button class="btn btn-secondary" onclick="editPost('${f.name}')">✏️ 编辑</button>
+          <button class="btn btn-secondary" onclick="editPost('${p.name}')">✏️ 编辑</button>
         </div>
       </li>
     `).join('');
@@ -438,11 +437,11 @@ async function loadPostList() {
   }
 }
 
-// 编辑已有文章
+// 编辑已有文章（用 raw.githubusercontent.com，无限流）
 async function editPost(filename) {
   showMsg('正在加载文章...', 'success');
   try {
-    const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${CONTENT_DIR}/${filename}`);
+    const res = await fetch(`${RAW_BASE}/content/blog/zh-CN/${filename}`);
     if (!res.ok) throw new Error('获取失败');
     const text = await res.text();
     
