@@ -325,8 +325,7 @@ ${content}`;
 
 function showMsg(text, type) {
   const area = document.getElementById('msg-area');
-  area.innerHTML = `<div class="msg msg-${type}">${text}</div>`;
-  setTimeout(() => area.innerHTML = '', 3000);
+  area.innerHTML = `<div class="msg msg-${type}">${text} <span onclick="this.parentElement.remove()" style="cursor:pointer;float:right;font-weight:bold;">✕</span></div>`;
 }
 
 function clearEditor() {
