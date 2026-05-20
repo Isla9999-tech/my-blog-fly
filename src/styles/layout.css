@@ -25,8 +25,13 @@
   }
 
   /* Full page header (index) */
+  #page-header {
+    background-size: cover;
+    background-position: center;
+  }
   #page-header.full_page {
-    @apply h-screen bg-fixed;
+    @apply h-screen bg-fixed bg-bottom;
+    background-size: auto 100%;
   }
 
   /* #site-info styles inlined in header/index.astro */

@@ -53,7 +53,7 @@ if (!theme.disable_top_img ) {
 const sub = config.subtitle.sub;
 ---
 
-<header id="page-header" class={`${headerClassName}${isFixedClass} relative w-full bg-theme bg-center bg-cover bg-no-repeat transition-all duration-500`} style={bg_img}>
+<header id="page-header" class={`${headerClassName}${isFixedClass} relative w-full bg-theme bg-center bg-no-repeat transition-all duration-500`} style={`${bg_img}${isHome ? ';background-size:auto 100%;background-position:bottom center' : ''}`}>
   <Nav lang={lang}/>
       {top_img !== false ? (
         isPost ? (

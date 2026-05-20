@@ -1,10 +1,10 @@
 import type { Language, SiteConfig } from './types';
 
 const configZhCN = {
-    title: "Mox的笔记库",
-    description: "探索未曾设想的道路",
-    keywords: "Working",
-    author: "MocusEZ",
+    title: "Isla的博客",
+    description: "生命不息，折腾不止",
+    keywords: "博客,技术,生活",
+    author: "Isla",
     copy: {
         enable: true,
         copyright: {
@@ -24,8 +24,8 @@ const configZhCN = {
         typed_option: null,
         source: false,
         sub: [
-            "初看前路近可至，细思百事竞待忙",
-            "认知，信条，教导"
+            "生命不息，折腾不止",
+            "记录生活、技术与思考"
         ]
     },
     menu: {
@@ -40,7 +40,7 @@ const configZhCN = {
     },
     aside: {
         card_announcement: {
-            content: "开放友链添加，欢迎互换"
+            content: "欢迎来访，博客建设中..."
         }
     },
     date_format: "YYYY-MM-DD",
@@ -48,10 +48,10 @@ const configZhCN = {
 } satisfies SiteConfig;
 
 const configEn = {
-    title: "Mox's Notes Library",
-    description: "Exploring uncharted paths",
-    keywords: "Working",
-    author: "MocusEZ",
+    title: "Isla's Blog",
+    description: "Never stop exploring",
+    keywords: "blog,tech,life",
+    author: "Isla",
     copy: {
         enable: true,
         copyright: {
@@ -71,8 +71,8 @@ const configEn = {
         typed_option: null,
         source: false,
         sub: [
-            "Will there is a will, there is a way",
-            "Courage and Honor !"
+            "Never stop exploring",
+            "Recording life, tech and thoughts"
         ]
     },
     menu: {
@@ -87,7 +87,7 @@ const configEn = {
     },
     aside: {
         card_announcement: {
-            content: "Open for adding friend links, welcome to exchange"
+            content: "Welcome! Blog under construction..."
         }
     },
     date_format: "YYYY-MM-DD",

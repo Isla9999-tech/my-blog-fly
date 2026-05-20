@@ -6,19 +6,19 @@ export const theme: ThemeConfig = {
             enable: true,
             since: 2019,
         },
-        custom_text: 'test',
+        custom_text: '© 2026 Isla',
         copyright: true,
     },
     display_mode: 'light',
     avatar: {
-        img: "/img/title.webp",
+        img: "/img/avatar-pad.png",
         effect: false
     },
     error_img: {
         flink: "/img/friend_404.gif",
         post_page: "/img/404.jpg"
     },
-    index_img: '/img/kali-2.0_kali-2.0-1920x1080.webp',
+    index_img: '/img/avatar.png',
     nav: {
         logo: null,
         display_title: true,
@@ -30,12 +30,12 @@ export const theme: ThemeConfig = {
         typed_option: null,
         source: false,
         sub: [
-            "初看前路近可至，细思百事竞待忙",
-            "认知，信条，教导"
+            "生命不息，折腾不止",
+            "记录生活、技术与思考"
         ]
     },
     social: {
-        "fab fa-github": "https://github.com/mocusez || Github || '#24292e'",
+        "fab fa-github": "https://github.com/Isla9999-tech || Github || '#24292e'",
         "fas fa-rss": "/atom.xml || RSS"
     },
     preloader: {
@@ -43,7 +43,7 @@ export const theme: ThemeConfig = {
         source: 1,
         pace_css_url: null
     },
-    favicon: "/img/title.jpg",
+    favicon: "/img/avatar.png",
     aside: {
         enable: true,
         hide: false,
@@ -62,12 +62,12 @@ export const theme: ThemeConfig = {
             enable: false,
             icon: "fab fa-github",
             text: "Follow Me",
-            link: "https://github.com/mocusez"
+            link: "https://github.com/Isla9999-tech"
           }
         },
         card_announcement: {
           enable: true,
-          content: "开放友链添加，欢迎互换"
+          content: "欢迎来访，博客建设中..."
         },
         card_recent_post: {
           enable: true,
@@ -154,7 +154,7 @@ export const theme: ThemeConfig = {
     },
     pwa: {
         enable: true,
-        name: "Mocusez Blog",
-        short_name: "Mocusez",
+        name: "Isla的博客",
+        short_name: "Isla",
     }
 };
