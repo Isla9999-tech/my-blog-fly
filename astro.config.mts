@@ -26,7 +26,7 @@ function pwaAutoVersion() {
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://isla9999-tech.github.io',
+  site: 'https://isla9999.com',
   integrations: [sitemap(), expressiveCode(), tailwind(), pagefind(), pwaAutoVersion()],
   vite: {
     build: {

@@ -62,7 +62,7 @@ const themeColor = theme.display_mode === 'dark' ? themeColorDark : themeColorLi
   <!-- Open Graph -->
   <!-- <include src="./head/Open_Graph.astro" /> -->
 
-  <link rel="shortcut icon" href="/img/title.webp">
+  <link rel="shortcut icon" href={theme.favicon || "/img/avatar.png"}>
   <!-- <link rel="canonical" href={urlNoIndex(null, config.pretty_urls.trailing_index, config.pretty_urls.trailing_html)} /> -->
 
   <!-- 預解析 -->
@@ -77,7 +77,7 @@ const themeColor = theme.display_mode === 'dark' ? themeColorDark : themeColorLi
       <link rel="manifest" href="/manifest.json" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="apple-mobile-web-app-title" content={theme.pwa.short_name || "Mocusez"} />
+      <meta name="apple-mobile-web-app-title" content={theme.pwa.short_name || "Isla"} />
       <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     </>
   )}

@@ -1,7 +1,7 @@
 {
-  "name": "Mocusez Blog",
-  "short_name": "Mocusez",
-  "description": "Mox的笔记库",
+  "name": "Isla的博客",
+  "short_name": "Isla",
+  "description": "生命不息，折腾不止",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
