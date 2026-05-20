@@ -414,6 +414,33 @@ async function updatePostsJson(token, slug, title, date) {
   } catch (e) { console.error('更新 posts.json 失败:', e); }
 }
 
+async function removeFromPostsJson(token, filename) {
+  try {
+    let posts = []; let sha = null;
+    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (checkRes.ok) {
+      const data = await checkRes.json();
+      sha = data.sha;
+      posts = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+    }
+    posts = posts.filter(p => p.name !== filename);
+
+    const body = {
+      message: `Remove from posts.json: ${filename}`,
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2)))),
+      branch: BRANCH
+    };
+    if (sha) body.sha = sha;
+    await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+  } catch (e) { console.error('更新 posts.json 失败:', e); }
+}
+
 // ===== 保存配置 =====
 async function saveConfig() {
   const btn = document.getElementById('btn-save-cfg');
@@ -539,6 +566,10 @@ async function deletePost(filename) {
     });
 
     if (!res.ok) throw new Error('删除失败');
+
+    // 同时更新 posts.json
+    await removeFromPostsJson(t, filename);
+
     toast(`✅ 已删除: ${filename}`, 'success');
     loadPostList();
   } catch (e) {
