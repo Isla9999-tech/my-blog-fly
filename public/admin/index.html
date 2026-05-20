@@ -526,9 +526,6 @@ if (sessionStorage.getItem('admin_auth') === '1') {
 }
 
 // ===== GitHub API =====
-const REPO = 'Isla9999-tech/my-blog-fly';
-const BRANCH = 'master';
-
 function getToken() { return localStorage.getItem('gh_token') || ''; }
 function saveToken() {
   const t = document.getElementById('gh-token').value.trim();
