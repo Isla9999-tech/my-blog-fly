@@ -11,7 +11,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .nav h1 { font-size: 18px; }
 .nav a { color: #e94560; text-decoration: none; font-size: 14px; }
 .container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
-.tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 .tab { padding: 8px 20px; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
 .tab.active { background: #e94560; color: #fff; border-color: #e94560; }
 .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
@@ -28,7 +28,8 @@ textarea:focus { border-color: #e94560; }
 .btn-secondary:hover { background: #e0e0e0; }
 .btn-danger { background: #ff6b6b; color: #fff; }
 .btn-danger:hover { background: #ee5a5a; }
-.actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .post-list { list-style: none; }
 .post-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
 .post-item:last-child { border-bottom: none; }
@@ -45,14 +46,25 @@ textarea:focus { border-color: #e94560; }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 768px) { .split { grid-template-columns: 1fr; } }
 .hidden { display: none; }
-.msg { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
-.msg-success { background: #d4edda; color: #155724; }
-.msg-error { background: #f8d7da; color: #721c24; }
 .tag { display: inline-block; background: #e94560; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; margin: 2px; }
 .help { font-size: 12px; color: #999; margin-top: 4px; }
+/* 全局通知 */
+#toast { position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; }
+.toast-item { padding: 14px 20px; border-radius: 10px; margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; }
+.toast-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.toast-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.toast-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+.toast-close { cursor: pointer; margin-left: auto; font-weight: bold; opacity: 0.5; }
+.toast-close:hover { opacity: 1; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* 按钮内联状态 */
+.btn-status { font-size: 12px; margin-left: 8px; }
 </style>
 </head>
 <body>
+
+<!-- 全局通知容器 -->
+<div id="toast"></div>
 
 <!-- 登录页面 -->
 <div id="login-page" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);">
@@ -70,7 +82,7 @@ textarea:focus { border-color: #e94560; }
 <div id="admin-panel" style="display:none;">
 
 <div class="nav">
-  <h1>📝 Isla的博客 - 管理面板</h1>
+  <h1>📝 Isla9999 - 管理面板</h1>
   <a href="/zh-CN/" target="_blank">查看博客 →</a>
 </div>
 
@@ -103,20 +115,7 @@ textarea:focus { border-color: #e94560; }
       <div class="split">
         <div>
           <label>编辑</label>
-          <textarea id="post-content" placeholder="# 标题
-
-正文内容...
-
-## 二级标题
-
-- 列表项1
-- 列表项2
-
-**加粗** *斜体* `代码`
-
-```js
-console.log('Hello!');
-```"></textarea>
+          <textarea id="post-content" placeholder="# 标题&#10;&#10;正文内容..."></textarea>
         </div>
         <div>
           <label>预览</label>
@@ -124,7 +123,7 @@ console.log('Hello!');
         </div>
       </div>
       <div class="actions">
-        <button class="btn btn-primary" onclick="saveToGitHub()">🚀 保存到 GitHub</button>
+        <button class="btn btn-primary" id="btn-save-post" onclick="saveToGitHub()">🚀 保存到 GitHub</button>
         <button class="btn btn-secondary" onclick="generatePost()">📄 生成文件下载</button>
         <button class="btn btn-secondary" onclick="clearEditor()">🗑️ 清空</button>
       </div>
@@ -140,9 +139,6 @@ console.log('Hello!');
           <button class="btn btn-primary" onclick="downloadFile()">💾 下载文件</button>
           <button class="btn btn-secondary" onclick="copyToClipboard()">📋 复制到剪贴板</button>
         </div>
-        <div class="help" style="margin-top:12px;">
-          下载后把文件放到 <code>content/blog/zh-CN/</code> 目录，然后推送到 GitHub 即可。
-        </div>
       </div>
     </div>
   </div>
@@ -152,7 +148,7 @@ console.log('Hello!');
     <div class="card">
       <h2>已有文章 <button class="btn btn-secondary" onclick="loadPostList()" style="font-size:12px;padding:4px 12px;">🔄 刷新</button></h2>
       <ul class="post-list" id="post-list">
-        <li style="padding:12px;color:#999;">切换到文章列表自动加载...</li>
+        <li style="padding:12px;color:#999;">加载中...</li>
       </ul>
       <div class="help">文章存储在 content/blog/zh-CN/ 目录中。</div>
     </div>
@@ -161,10 +157,10 @@ console.log('Hello!');
   <!-- 博客配置 -->
   <div id="tab-settings" class="hidden">
     <div class="card">
-      <h2>🔑 GitHub Token（必填）</h2>
+      <h2>🔑 GitHub Token</h2>
       <label>Personal Access Token</label>
       <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
-      <div class="help">去 GitHub → Settings → Developer settings → Personal access tokens 创建，勾选 repo 权限。Token 只保存在浏览器本地。</div>
+      <div class="help">去 GitHub → Settings → Developer settings → Personal access tokens 创建，勾选 repo 权限。</div>
       <div class="actions">
         <button class="btn btn-primary" onclick="saveToken()">💾 保存 Token</button>
         <button class="btn btn-secondary" onclick="testToken()">🔍 测试连接</button>
@@ -180,15 +176,10 @@ console.log('Hello!');
       <input type="text" id="cfg-subtitle" value="生命不息，折腾不止">
       <label>作者名</label>
       <input type="text" id="cfg-author" value="Isla">
-      <label>GitHub 地址</label>
-      <input type="text" id="cfg-github" value="https://github.com/Isla9999-tech">
       <div class="actions">
-        <button class="btn btn-primary" onclick="saveConfig()">💾 保存配置</button>
-        <div id="cfg-msg" style="margin-top:8px;font-size:13px;"></div>
+        <button class="btn btn-primary" id="btn-save-cfg" onclick="saveConfig()">💾 保存配置</button>
       </div>
-      <div class="help" style="margin-top:12px;">
-        修改后需要重新推送到 GitHub 生效。配置文件位于 <code>src/config.ts</code> 和 <code>src/theme.ts</code>。
-      </div>
+      <div id="cfg-status" style="margin-top:8px;font-size:13px;"></div>
     </div>
 
     <div class="card">
@@ -206,42 +197,22 @@ console.log('Hello!');
   <div id="tab-help" class="hidden">
     <div class="card">
       <h2>📖 如何发布文章</h2>
-      <ol style="line-height:2;padding-left:20px;">
-        <li>在「写文章」页面填写标题、分类、正文</li>
-        <li>点击「生成文章文件」预览效果</li>
-        <li>点击「下载文件」获取 <code>.md</code> 文件</li>
-        <li>把文件放到项目的 <code>content/blog/zh-CN/</code> 目录</li>
-        <li>推送到 GitHub：<code>git add . && git commit -m "新文章" && git push</code></li>
-        <li>Cloudflare Pages 自动部署，1-2 分钟后生效</li>
+      <ol style="line-height:2.2;padding-left:20px;">
+        <li>点「✍️ 写文章」填写标题、分类、正文</li>
+        <li>点「🚀 保存到 GitHub」→ 自动推送 → Cloudflare 自动部署</li>
+        <li>1-2 分钟后在博客上就能看到新文章</li>
       </ol>
     </div>
     <div class="card">
       <h2>🖼️ 如何添加图片</h2>
-      <ol style="line-height:2;padding-left:20px;">
-        <li>把图片放到 <code>public/img/</code> 目录</li>
-        <li>在文章中使用：<code>![描述](/img/图片名.jpg)</code></li>
-        <li>也可以直接用网络图片链接</li>
+      <ol style="line-height:2.2;padding-left:20px;">
+        <li>把图片放到 <code>public/img/</code> 目录并推送</li>
+        <li>在文章中写：<code>![描述](/img/图片名.jpg)</code></li>
       </ol>
     </div>
     <div class="card">
       <h2>🔗 如何管理友链</h2>
-      <p>编辑 <code>content/link.zh-CN.json</code> 文件，格式：</p>
-      <pre style="background:#f5f5f5;padding:12px;border-radius:8px;font-size:13px;margin-top:8px;">[{
-  "class_name": "友情链接",
-  "class_desc": "推荐的网站",
-  "link_list": [
-    {
-      "name": "网站名",
-      "link": "https://example.com",
-      "avatar": "https://example.com/avatar.png",
-      "desc": "网站描述"
-    }
-  ]
-}]</pre>
-    </div>
-    <div class="card">
-      <h2>💬 如何管理留言板</h2>
-      <p>编辑 <code>content/board/zh-cn.md</code> 文件即可。支持评论系统（Waline）需要额外配置。</p>
+      <p>编辑 <code>content/link.zh-CN.json</code> 文件。</p>
     </div>
   </div>
 </div>
@@ -249,7 +220,42 @@ console.log('Hello!');
 </div> <!-- /admin-panel -->
 
 <script>
-// 简易 Markdown 转 HTML
+// ===== 全局通知 =====
+function toast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const container = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = `toast-item toast-${type}`;
+  el.innerHTML = `<span>${icons[type] || ''}</span><span>${msg}</span><span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+  container.appendChild(el);
+  if (type !== 'error') setTimeout(() => el.remove(), 5000);
+}
+
+// ===== 登录验证 =====
+const PWD_HASH = '3d19b3996c5f62a0e11a6256a73dab834e95285ecf746336622ff87b3b6f34e6';
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function doLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  const hash = await sha256(pwd);
+  if (hash === PWD_HASH) {
+    sessionStorage.setItem('admin_auth', '1');
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-error').textContent = '密码错误，请重试';
+    document.getElementById('login-pwd').value = '';
+  }
+}
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+}
+
+// ===== Markdown 转 HTML =====
 function md2html(md) {
   return md
     .replace(/^### (.*$)/gm, '<h3>$1</h3>')
@@ -265,19 +271,14 @@ function md2html(md) {
     .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">')
     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
     .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br>')
-    .replace(/^(.+)$/gm, function(m) {
-      if (m.startsWith('<h') || m.startsWith('<ul') || m.startsWith('<li') || m.startsWith('<pre') || m.startsWith('<blockquote') || m.startsWith('<img')) return m;
-      return m;
-    });
+    .replace(/\n/g, '<br>');
 }
 
-// 实时预览
 document.getElementById('post-content').addEventListener('input', function() {
   document.getElementById('preview').innerHTML = '<p>' + md2html(this.value) + '</p>';
 });
 
-// Tab 切换
+// ===== Tab 切换 =====
 function showTab(name) {
   document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
   document.getElementById('tab-' + name).classList.remove('hidden');
@@ -286,303 +287,26 @@ function showTab(name) {
   if (name === 'posts') loadPostList();
 }
 
-// 自动生成 slug
+// ===== 自动生成 slug =====
 document.getElementById('post-title').addEventListener('input', function() {
-  const slug = this.value
-    .toLowerCase()
-    .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  document.getElementById('post-slug').value = slug;
+  document.getElementById('post-slug').value = this.value.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
 });
 
-// 生成文章
-function generatePost() {
-  const title = document.getElementById('post-title').value.trim();
-  const slug = document.getElementById('post-slug').value.trim();
-  const category = document.getElementById('post-category').value.trim() || '未分类';
-  const sticky = document.getElementById('post-sticky').value || '0';
-  const content = document.getElementById('post-content').value;
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-  if (!title) { showMsg('请填写文章标题', 'error'); return; }
-  if (!slug) { showMsg('请填写URL路径', 'error'); return; }
-
-  const md = `---
-title: ${title}
-abbrlink: ${slug}
-categories: ${category}
-date: ${now}
-updated: ${now}
-sticky: ${sticky}
----
-
-${content}`;
-
-  document.getElementById('output-md').value = md;
-  document.getElementById('output-area').classList.remove('hidden');
-  showMsg('✅ 文章文件已生成！', 'success');
-}
-
-function showMsg(text, type) {
-  const area = document.getElementById('msg-area');
-  area.innerHTML = `<div class="msg msg-${type}">${text} <span onclick="this.parentElement.remove()" style="cursor:pointer;float:right;font-weight:bold;">✕</span></div>`;
-}
-
-function clearEditor() {
-  document.getElementById('post-title').value = '';
-  document.getElementById('post-slug').value = '';
-  document.getElementById('post-category').value = '';
-  document.getElementById('post-sticky').value = '0';
-  document.getElementById('post-content').value = '';
-  document.getElementById('preview').innerHTML = '';
-  document.getElementById('output-area').classList.add('hidden');
-}
-
-function downloadFile() {
-  const md = document.getElementById('output-md').value;
-  const slug = document.getElementById('post-slug').value || 'post';
-  const blob = new Blob([md], { type: 'text/markdown' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = slug + '.md';
-  a.click();
-}
-
-function copyToClipboard() {
-  const md = document.getElementById('output-md').value;
-  navigator.clipboard.writeText(md).then(() => showMsg('已复制到剪贴板！', 'success'));
-}
-
-// 文章模板
-function insertTemplate(type) {
-  showTab('write');
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab')[0].classList.add('active');
-  
-  const templates = {
-    basic: `## 引言
-
-在这里写引言内容。
-
-## 正文
-
-这是正文部分。
-
-### 小标题
-
-详细内容...
-
-## 总结
-
-总结内容。`,
-    code: `## 介绍
-
-今天来学习 XXX。
-
-## 代码示例
-
-\`\`\`javascript
-function hello() {
-  console.log('Hello World!');
-}
-\`\`\`
-
-## 运行结果
-
-输出：
-
-\`\`\`
-Hello World!
-\`\`\`
-
-## 注意事项
-
-- 注意点1
-- 注意点2`,
-    photo: `## 前言
-
-最近拍了一些照片，分享给大家。
-
-![风景照](/img/photo1.jpg)
-
-*拍摄于 XXX*
-
-## 更多照片
-
-![照片2](/img/photo2.jpg)
-
-> 文字说明`
-  };
-  
-  document.getElementById('post-content').value = templates[type] || '';
-  document.getElementById('preview').innerHTML = '<p>' + md2html(templates[type]) + '</p>';
-}
-
-// 从本地 JSON 加载文章列表，编辑用 raw.githubusercontent.com
+// ===== GitHub API =====
 const REPO = 'Isla9999-tech/my-blog-fly';
 const BRANCH = 'master';
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/${BRANCH}`;
 
-async function loadPostList() {
-  const list = document.getElementById('post-list');
-  list.innerHTML = '<li style="padding:12px;color:#999;">加载中...</li>';
-  try {
-    const res = await fetch('/admin/posts.json?' + Date.now());
-    if (!res.ok) throw new Error('获取失败');
-    const posts = await res.json();
-    if (!posts.length) {
-      list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>';
-      return;
-    }
-    list.innerHTML = posts.map(p => `
-      <li class="post-item">
-        <div>
-          <span class="post-title">${p.title || p.name}</span>
-          <br><span class="post-date">${p.date || ''}</span>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary" onclick="editPost('${p.name}')">✏️ 编辑</button>
-          <button class="btn btn-danger" onclick="deletePost('${p.name}')" style="font-size:12px;padding:4px 10px;">🗑️</button>
-        </div>
-      </li>
-    `).join('');
-  } catch (e) {
-    list.innerHTML = `<li style="padding:12px;color:#c00;">加载失败: ${e.message}</li>`;
-  }
-}
-
-// 编辑已有文章（用 raw.githubusercontent.com，无限流）
-async function editPost(filename) {
-  showMsg('正在加载文章...', 'success');
-  try {
-    const res = await fetch(`${RAW_BASE}/content/blog/zh-CN/${filename}`);
-    if (!res.ok) throw new Error('获取失败');
-    const text = await res.text();
-    
-    // 解析 frontmatter
-    const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-    if (match) {
-      const meta = match[1];
-      const body = match[2];
-      const getVal = (key) => { const m = meta.match(new RegExp(key + ':\s*(.*)')); return m ? m[1].trim() : ''; };
-      
-      document.getElementById('post-title').value = getVal('title').replace(/^['"]|['"]$/g, '');
-      document.getElementById('post-slug').value = getVal('abbrlink').replace(/^['"]|['"]$/g, '');
-      document.getElementById('post-category').value = getVal('categories').replace(/^['"]|['"]$/g, '');
-      document.getElementById('post-sticky').value = getVal('sticky') || '0';
-      document.getElementById('post-content').value = body;
-      document.getElementById('preview').innerHTML = '<p>' + md2html(body) + '</p>';
-    } else {
-      document.getElementById('post-content').value = text;
-      document.getElementById('preview').innerHTML = '<p>' + md2html(text) + '</p>';
-    }
-    
-    // 切换到编辑tab
-    showTab('write');
-    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab')[0].classList.add('active');
-    showMsg(`✅ 已加载: ${filename}`, 'success');
-  } catch (e) {
-    showMsg('加载失败: ' + e.message, 'error');
-  }
-}
-
-// 页面加载时获取文章列表
-document.addEventListener('DOMContentLoaded', loadPostList);
-
-async function saveConfig() {
-  const t = getToken();
-  if (!t) { showCfgMsg('请先配置 GitHub Token！', 'error'); return; }
-
-  const title = document.getElementById('cfg-title').value.trim();
-  const subtitle = document.getElementById('cfg-subtitle').value.trim();
-  const author = document.getElementById('cfg-author').value.trim();
-  const github = document.getElementById('cfg-github').value.trim();
-
-  showCfgMsg('正在保存...', 'success');
-
-  try {
-    // 1. 获取当前 config.ts
-    const filePath = 'src/config.ts';
-    const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
-      headers: { Authorization: `Bearer ${t}` }
-    });
-    if (!fileRes.ok) throw new Error('获取 config.ts 失败');
-    const fileData = await fileRes.json();
-    let content = decodeURIComponent(escape(atob(fileData.content)));
-
-    // 2. 替换中文配置
-    content = content.replace(/title: "[^"]*"/, `title: "${title}"`);
-    content = content.replace(/description: "[^"]*"/, `description: "${subtitle}"`);
-    content = content.replace(/author: "[^"]*"/, `author: "${author}"`);
-
-    // 3. 提交更新
-    const body = {
-      message: `Update config: ${title}`,
-      content: btoa(unescape(encodeURIComponent(content))),
-      sha: fileData.sha,
-      branch: BRANCH
-    };
-
-    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
-
-    showCfgMsg('✅ 配置已保存！Cloudflare 将自动部署。', 'success');
-  } catch (e) {
-    showCfgMsg('❌ 保存失败: ' + e.message, 'error');
-  }
-}
-
-function showCfgMsg(msg, type) {
-  const el = document.getElementById('cfg-msg');
-  el.style.color = type === 'error' ? '#c00' : '#090';
-  el.textContent = msg;
-}
-</script>
-
-<script>
-// ===== 登录验证 =====
-const PWD_HASH = '3d19b3996c5f62a0e11a6256a73dab834e95285ecf746336622ff87b3b6f34e6'; // 默认密码: isla9999
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function doLogin() {
-  const pwd = document.getElementById('login-pwd').value;
-  const hash = await sha256(pwd);
-  if (hash === PWD_HASH) {
-    sessionStorage.setItem('admin_auth', '1');
-    document.getElementById('login-page').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
-  } else {
-    const err = document.getElementById('login-error');
-    err.style.display = 'block';
-    err.textContent = '密码错误，请重试';
-    document.getElementById('login-pwd').value = '';
-  }
-}
-
-// 检查是否已登录
-if (sessionStorage.getItem('admin_auth') === '1') {
-  document.getElementById('login-page').style.display = 'none';
-  document.getElementById('admin-panel').style.display = 'block';
-}
-
-// ===== GitHub API =====
 function getToken() { return localStorage.getItem('gh_token') || ''; }
+
 function saveToken() {
   const t = document.getElementById('gh-token').value.trim();
   if (!t) { showTokenStatus('请输入 Token', 'error'); return; }
   localStorage.setItem('gh_token', t);
   showTokenStatus('✅ Token 已保存', 'success');
+  toast('Token 已保存', 'success');
 }
+
 async function testToken() {
   const t = getToken();
   if (!t) { showTokenStatus('请先保存 Token', 'error'); return; }
@@ -590,21 +314,24 @@ async function testToken() {
     const r = await fetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${t}` } });
     if (!r.ok) throw new Error('Token 无效');
     const d = await r.json();
-    showTokenStatus(`✅ 连接成功！登录用户: ${d.login}`, 'success');
-  } catch (e) { showTokenStatus('❌ ' + e.message, 'error'); }
+    showTokenStatus(`✅ 连接成功！用户: ${d.login}`, 'success');
+    toast(`连接成功！用户: ${d.login}`, 'success');
+  } catch (e) { showTokenStatus('❌ ' + e.message, 'error'); toast(e.message, 'error'); }
 }
+
 function showTokenStatus(msg, type) {
   const el = document.getElementById('token-status');
   el.style.color = type === 'error' ? '#c00' : '#090';
   el.textContent = msg;
 }
 
-// 页面加载时恢复 Token
 if (localStorage.getItem('gh_token')) document.getElementById('gh-token').value = '********';
 
+// ===== 保存文章到 GitHub =====
 async function saveToGitHub() {
+  const btn = document.getElementById('btn-save-post');
   const t = getToken();
-  if (!t) { showMsg('请先在设置页面配置 GitHub Token！', 'error'); return; }
+  if (!t) { toast('请先在设置页面配置 GitHub Token！', 'error'); return; }
 
   const title = document.getElementById('post-title').value.trim();
   const slug = document.getElementById('post-slug').value.trim();
@@ -613,26 +340,23 @@ async function saveToGitHub() {
   const content = document.getElementById('post-content').value;
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-  if (!title) { showMsg('请填写文章标题', 'error'); return; }
-  if (!slug) { showMsg('请填写URL路径', 'error'); return; }
+  if (!title) { toast('请填写文章标题', 'error'); return; }
+  if (!slug) { toast('请填写URL路径', 'error'); return; }
 
   const md = `---\ntitle: ${title}\nabbrlink: ${slug}\ncategories: ${category}\ndate: ${now}\nupdated: ${now}\nsticky: ${sticky}\n---\n\n${content}`;
   const path = `content/blog/zh-CN/${slug}.md`;
 
-  showMsg('正在保存到 GitHub...', 'success');
+  btn.disabled = true;
+  btn.textContent = '⏳ 保存中...';
+  toast('正在保存到 GitHub...', 'info');
 
   try {
-    // 先检查文件是否已存在（获取 SHA）
     let sha = null;
     const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
       headers: { Authorization: `Bearer ${t}` }
     });
-    if (checkRes.ok) {
-      const data = await checkRes.json();
-      sha = data.sha;
-    }
+    if (checkRes.ok) { const data = await checkRes.json(); sha = data.sha; }
 
-    // 创建或更新文件
     const body = {
       message: sha ? `Update post: ${title}` : `New post: ${title}`,
       content: btoa(unescape(encodeURIComponent(md))),
@@ -642,32 +366,28 @@ async function saveToGitHub() {
 
     const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${t}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || '保存失败');
-    }
+    if (!res.ok) { const err = await res.json(); throw new Error(err.message || '保存失败'); }
 
-    // 同时更新 posts.json
     await updatePostsJson(t, slug, title, now);
 
-    showMsg(`✅ 已保存到 GitHub！Cloudflare 将自动部署。`, 'success');
+    btn.textContent = '✅ 已保存！';
+    toast(`文章「${title}」已保存到 GitHub！`, 'success');
+    setTimeout(() => { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
   } catch (e) {
-    showMsg('❌ 保存失败: ' + e.message, 'error');
+    btn.textContent = '❌ 保存失败';
+    toast('保存失败: ' + e.message, 'error');
+    setTimeout(() => { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
   }
 }
 
+// ===== 更新 posts.json =====
 async function updatePostsJson(token, slug, title, date) {
   try {
-    // 获取当前 posts.json
-    let posts = [];
-    let sha = null;
+    let posts = []; let sha = null;
     const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -676,12 +396,9 @@ async function updatePostsJson(token, slug, title, date) {
       sha = data.sha;
       posts = JSON.parse(decodeURIComponent(escape(atob(data.content))));
     }
-
-    // 更新列表
     const existing = posts.findIndex(p => p.name === slug + '.md');
     const entry = { name: slug + '.md', title: title, date: date };
-    if (existing >= 0) posts[existing] = entry;
-    else posts.push(entry);
+    if (existing >= 0) posts[existing] = entry; else posts.push(entry);
 
     const body = {
       message: `Update posts.json: ${title}`,
@@ -689,23 +406,123 @@ async function updatePostsJson(token, slug, title, date) {
       branch: BRANCH
     };
     if (sha) body.sha = sha;
-
     await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
   } catch (e) { console.error('更新 posts.json 失败:', e); }
 }
 
-// 删除文章
-deletePost = async function(filename) {
+// ===== 保存配置 =====
+async function saveConfig() {
+  const btn = document.getElementById('btn-save-cfg');
   const t = getToken();
-  if (!t) { showMsg('请先配置 GitHub Token', 'error'); return; }
-  if (!confirm('确定删除 ' + filename + '？此操作不可撤销！')) return;
+  if (!t) { toast('请先配置 GitHub Token！', 'error'); return; }
+
+  const title = document.getElementById('cfg-title').value.trim();
+  const subtitle = document.getElementById('cfg-subtitle').value.trim();
+  const author = document.getElementById('cfg-author').value.trim();
+
+  btn.disabled = true;
+  btn.textContent = '⏳ 保存中...';
+
+  try {
+    const filePath = 'src/config.ts';
+    const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+      headers: { Authorization: `Bearer ${t}` }
+    });
+    if (!fileRes.ok) throw new Error('获取 config.ts 失败');
+    const fileData = await fileRes.json();
+    let content = decodeURIComponent(escape(atob(fileData.content)));
+
+    content = content.replace(/title: "[^"]*"/, `title: "${title}"`);
+    content = content.replace(/description: "[^"]*"/, `description: "${subtitle}"`);
+    content = content.replace(/author: "[^"]*"/, `author: "${author}"`);
+
+    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Update config: ${title}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: fileData.sha,
+        branch: BRANCH
+      })
+    });
+
+    if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
+
+    btn.textContent = '✅ 已保存！';
+    toast('配置已保存！Cloudflare 将自动部署。', 'success');
+    setTimeout(() => { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
+  } catch (e) {
+    btn.textContent = '❌ 保存失败';
+    toast('保存失败: ' + e.message, 'error');
+    setTimeout(() => { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
+  }
+}
+
+// ===== 文章列表 =====
+async function loadPostList() {
+  const list = document.getElementById('post-list');
+  list.innerHTML = '<li style="padding:12px;color:#999;">加载中...</li>';
+  try {
+    const res = await fetch('/admin/posts.json?' + Date.now());
+    if (!res.ok) throw new Error('获取失败');
+    const posts = await res.json();
+    if (!posts.length) { list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>'; return; }
+    list.innerHTML = posts.map(p => `
+      <li class="post-item">
+        <div>
+          <span class="post-title">${p.title || p.name}</span>
+          <br><span class="post-date">${p.date || ''}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary" onclick="editPost('${p.name}')">✏️ 编辑</button>
+          <button class="btn btn-danger" id="del-${p.name}" onclick="deletePost('${p.name}')">🗑️ 删除</button>
+        </div>
+      </li>
+    `).join('');
+  } catch (e) { list.innerHTML = `<li style="padding:12px;color:#c00;">加载失败: ${e.message}</li>`; }
+}
+
+// ===== 编辑文章 =====
+async function editPost(filename) {
+  toast('正在加载文章...', 'info');
+  try {
+    const res = await fetch(`${RAW_BASE}/content/blog/zh-CN/${filename}`);
+    if (!res.ok) throw new Error('获取失败');
+    const text = await res.text();
+    const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    if (match) {
+      const meta = match[1], body = match[2];
+      const getVal = (key) => { const m = meta.match(new RegExp(key + ':\\s*(.*)')); return m ? m[1].trim().replace(/^['"]|['"]$/g, '') : ''; };
+      document.getElementById('post-title').value = getVal('title');
+      document.getElementById('post-slug').value = getVal('abbrlink');
+      document.getElementById('post-category').value = getVal('categories');
+      document.getElementById('post-sticky').value = getVal('sticky') || '0';
+      document.getElementById('post-content').value = body;
+      document.getElementById('preview').innerHTML = '<p>' + md2html(body) + '</p>';
+    } else {
+      document.getElementById('post-content').value = text;
+      document.getElementById('preview').innerHTML = '<p>' + md2html(text) + '</p>';
+    }
+    showTab('write');
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    toast(`已加载: ${filename}`, 'success');
+  } catch (e) { toast('加载失败: ' + e.message, 'error'); }
+}
+
+// ===== 删除文章 =====
+async function deletePost(filename) {
+  const t = getToken();
+  if (!t) { toast('请先配置 GitHub Token', 'error'); return; }
+  if (!confirm(`确定删除「${filename}」？此操作不可撤销！`)) return;
+
+  const btn = document.getElementById('del-' + filename);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
 
   try {
     const path = `content/blog/zh-CN/${filename}`;
@@ -717,18 +534,72 @@ deletePost = async function(filename) {
 
     const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${t}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: `Delete post: ${filename}`, sha: data.sha, branch: BRANCH })
     });
 
     if (!res.ok) throw new Error('删除失败');
-    showMsg('✅ 已删除: ' + filename, 'success');
+    toast(`✅ 已删除: ${filename}`, 'success');
     loadPostList();
-  } catch (e) { showMsg('❌ ' + e.message, 'error'); }
-};
+  } catch (e) {
+    toast('删除失败: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '🗑️ 删除'; }
+  }
+}
+
+// ===== 其他功能 =====
+function generatePost() {
+  const title = document.getElementById('post-title').value.trim();
+  const slug = document.getElementById('post-slug').value.trim();
+  const category = document.getElementById('post-category').value.trim() || '未分类';
+  const sticky = document.getElementById('post-sticky').value || '0';
+  const content = document.getElementById('post-content').value;
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  if (!title) { toast('请填写文章标题', 'error'); return; }
+  if (!slug) { toast('请填写URL路径', 'error'); return; }
+  const md = `---\ntitle: ${title}\nabbrlink: ${slug}\ncategories: ${category}\ndate: ${now}\nupdated: ${now}\nsticky: ${sticky}\n---\n\n${content}`;
+  document.getElementById('output-md').value = md;
+  document.getElementById('output-area').classList.remove('hidden');
+  toast('文件已生成，可下载或复制', 'success');
+}
+
+function clearEditor() {
+  ['post-title','post-slug','post-category'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('post-sticky').value = '0';
+  document.getElementById('post-content').value = '';
+  document.getElementById('preview').innerHTML = '';
+  document.getElementById('output-area').classList.add('hidden');
+}
+
+function downloadFile() {
+  const md = document.getElementById('output-md').value;
+  const slug = document.getElementById('post-slug').value || 'post';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
+  a.download = slug + '.md';
+  a.click();
+  toast('文件已下载', 'success');
+}
+
+function copyToClipboard() {
+  navigator.clipboard.writeText(document.getElementById('output-md').value).then(() => toast('已复制到剪贴板！', 'success'));
+}
+
+function insertTemplate(type) {
+  showTab('write');
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  const templates = {
+    basic: `## 引言\n\n在这里写引言内容。\n\n## 正文\n\n正文内容。\n\n## 总结\n\n总结内容。`,
+    code: `## 介绍\n\n今天来学习 XXX。\n\n## 代码示例\n\n\`\`\`javascript\nfunction hello() {\n  console.log('Hello World!');\n}\n\`\`\`\n\n## 运行结果\n\n\`\`\`\nHello World!\n\`\`\``,
+    photo: `## 前言\n\n最近拍了一些照片。\n\n![风景照](/img/photo1.jpg)\n\n*拍摄于 XXX*`
+  };
+  document.getElementById('post-content').value = templates[type] || '';
+  document.getElementById('preview').innerHTML = '<p>' + md2html(templates[type]) + '</p>';
+  toast('已插入模板', 'info');
+}
+
+document.addEventListener('DOMContentLoaded', loadPostList);
 </script>
 
 </body>
