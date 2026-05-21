@@ -18,23 +18,15 @@ interface Props {
   page: Record<string, any>;
   postHeadings?: PostHeading[];
 }
-const { lang,page,postHeadings } = Astro.props;
+const { lang, page, postHeadings } = Astro.props;
 const asideClass = theme.aside.enable && theme.aside.hide ? 'hide-aside' : '';
 
-// 排除分页和归档页面不被 Pagefind 索引
 const excludeFromSearch = page.type === 'archives' || page.type === 'index';
 ---
 <html lang={lang} class={asideClass}>
   <Head lang={lang} page={page}/>
   <body>
     <LoadingIndex />
-    <!-- {partial('includes/loading/index', {}, { cache: true })} -->
-
-    <!-- {theme.background && (
-      <div id="web_bg" style={getBgPath(theme.background)}></div>
-    )} -->
-
-    <!-- {partial('includes/sidebar', {}, { cache: true })} -->
     <Sidebar lang={lang}/>
     <div id="body-wrap" class={isPost ? 'post' : 'page' + (page.type ? ' type-' + page.type : '')}>
       <HeaderIndex lang={lang} page={page}/>
@@ -42,17 +34,6 @@ const excludeFromSearch = page.type === 'archives' || page.type === 'index';
       <main class='layout flex justify-between pt-5 pb-8 max-[900px]:flex-col' id="content-inner" data-pagefind-ignore={excludeFromSearch ? '' : undefined}>
         <slot />
         <WidgetIndex lang={lang} postHeadings={postHeadings}/>
-
-        <!-- {body ? (
-          <div>{body}</div>
-        ) : (
-          <>
-            <slot name="content"></slot>
-            {theme.aside.enable && page.aside !== false && (
-              <include src="./widget/index.astro" />
-            )}
-          </>
-        )} -->
       </main>
 
       <Footer lang={lang}/>

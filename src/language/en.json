@@ -46,6 +46,20 @@
         "local_search": {
             "hits_empty": "No results found for: ${query}",
             "hits_stats": "${hits} articles found"
+        },
+        "pagefind": {
+            "placeholder": "Search articles...",
+            "clear_search": "Clear",
+            "load_more": "Load more results",
+            "search_label": "Search this site",
+            "filters_label": "Filters",
+            "zero_results": "No results found",
+            "many_results": "[COUNT] results found",
+            "one_result": "[COUNT] result found",
+            "alt_search": "No results found, showing results for [DIFFERENT_TERM]",
+            "search_suggestion": "No results found, try these searches:",
+            "searching": "Searching...",
+            "load_failed": "Search failed to load, please refresh and try again"
         }
     },
     "pagination": {

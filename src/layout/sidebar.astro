@@ -1,14 +1,13 @@
 ---
 import type { Language } from '@src/types';
 import { useTranslations } from '@src/utils';
-import { getConfig }from '../config';
+import { getConfig } from '../config';
 
 interface Props { lang: Language; }
 const { lang } = Astro.props;
 const config = getConfig(lang);
 const t = useTranslations(lang);
-import { theme } from '../theme';
-import MenuItem  from './header/menu_item.astro';
+import MenuItem from './header/menu_item.astro';
 import { Image } from 'astro:assets';
 import HeadImage from '../image/head.webp';
 import { getBlogEntry,getCategoryList } from '@src/prework';
@@ -22,18 +21,18 @@ const tagLength:number = 0;
     <div id="menu-mask"></div>
     <div id="sidebar-menus">
       <div class="avatar-img text-center my-5 mx-auto">
-        <Image src={HeadImage} onerror={`this.onerror=null;this.src='${theme.error_img.flink}'`} alt="avatar" />
+        <Image src={HeadImage} alt="avatar" />
       </div>
       <div class="site-data text-center px-[10px]">
-        <a href={`${config.archive_dir}/`}>
+        <a href={`/${lang}/${config.archive_dir}/`}>
           <div class="headline">{t('aside.articles')}</div>
           <div class="length-num">{blogLength}</div>
         </a>
-        <a href={`${config.tag_dir}/`}>
+        <a href={`/${lang}/${config.tag_dir}/`}>
           <div class="headline">{t('aside.tags')}</div>
           <div class="length-num">{tagLength}</div>
         </a>
-        <a href={`${config.category_dir}/`}>
+        <a href={`/${lang}/${config.category_dir}/`}>
           <div class="headline">{t('aside.categories')}</div>
           <div class="length-num">{categoryLength}</div>
         </a>

@@ -1,7 +1,9 @@
 ---
+import type { Language } from '@src/types';
 import Layout from '@src/layout/layout.astro';
 import IndexPostUI from '@src/layout/mixins/IndexPostUI.astro';
 import { getBlogEntry } from '@src/prework';
+import { getConfig } from '@src/config';
 
 export async function getStaticPaths({ paginate }: any) {
   const languages = ['en', 'zh-CN'];
@@ -19,10 +21,11 @@ export async function getStaticPaths({ paginate }: any) {
   }
   return paths;
 }
-const { lang,page } = Astro.props;
+const { lang, page } = Astro.props as { lang: Language; page: any };
+const config = getConfig(lang);
 
 const pageSetting = {
-  "title": "主页",
+  "title": config.title,
   "type": "index",
   "comments": false
 };

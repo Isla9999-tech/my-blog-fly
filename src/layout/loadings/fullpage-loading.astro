@@ -1,6 +1,9 @@
 ---
-import { theme } from '../../theme'; // 假设 theme 是一个导入的主题配置
-// import { _p } from '../../../utils'; // 假设这是导入的实用函数
+import { theme } from '../../theme';
+import { useTranslations } from '@src/utils';
+
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'zh-CN';
+const t = useTranslations(lang);
 ---
 
 {theme.preloader.enable ? (
@@ -8,8 +11,7 @@ import { theme } from '../../theme'; // 假设 theme 是一个导入的主题配
     <div class="configure-border-2">
       <div class="configure-core"></div>
     </div>
-    {/* <div class="loading-word">{_p('loading')}</div> */}
-    <div class="loading-word">{'loading'}</div>
+    <div class="loading-word">{t('loading')}</div>
     <script>
       {`
         (() => {

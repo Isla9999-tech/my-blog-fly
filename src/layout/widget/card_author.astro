@@ -21,7 +21,7 @@ const t = useTranslations(lang);
 {theme.aside.card_author.enable && (
   <div class="card-widget card-info text-center">
     <div class="avatar-img my-5 mx-auto">
-      <Image src={HeadImage} onerror={`this.onerror=null;this.src='${theme.error_img.flink}'`} alt="avatar" />
+      <Image src={HeadImage} alt="avatar" />
     </div>
     <div class="author-info-name font-medium text-[1.57em]">{config.author}</div>
     <div class="author-info-description" style="margin-top: -0.42em;">{config.description}</div>

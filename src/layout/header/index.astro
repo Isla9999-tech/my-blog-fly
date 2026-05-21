@@ -23,16 +23,9 @@ const isHome = is_home(Astro.url);
 const isCategory = is_category(Astro.url);
 const isArchive = is_archive(Astro.url);
 
-if (!theme.disable_top_img ) {
-// if (!theme.disable_top_img && page.top_img !== false) {
+if (!theme.disable_top_img) {
   if (isPost) {
     top_img = page.cover || theme.default_top_img;
-    
-  // } else if (is_page()) {
-  //   top_img = page.top_img || theme.default_top_img;
-  // } else if (is_tag()) {
-  //   top_img = theme.tag_per_img && theme.tag_per_img[page.tag];
-  //   top_img = top_img || returnTopImg(theme.tag_img);
   } else if (isCategory) {
     top_img = (theme.category_per_img && theme.category_per_img[page.category]) || false;
     top_img = top_img || returnTopImg(theme.category_img ?? false);

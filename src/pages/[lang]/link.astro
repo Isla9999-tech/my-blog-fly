@@ -1,6 +1,5 @@
 ---
 import type { Language } from '@src/types';
-import { theme } from '@src/theme';
 import { useTranslations } from '@src/utils';
 import linkZhCN from '@content/link.zh-CN.json';
 import linkEn from '@content/link.en.json';
@@ -20,32 +19,6 @@ const { lang } = Astro.params as { lang: Language };
 const t = useTranslations(lang);
 const link = linkData[lang];
 
-let pageContent = '';
-if (link) {
-  let result = "";
-  link.forEach((i: any) => {
-    const className = i.class_name ? `<h2>${i.class_name}</h2>` : "";
-    const classDesc = i.class_desc ? `<div class="flink-desc">${i.class_desc}</div>` : "";
-
-    let listResult = "";
-    i.link_list.forEach((j: any) => {
-      listResult += `
-        <div class="flink-list-item">
-          <a href="${j.link}" title="${j.name}" target="_blank">
-            <div class="flink-item-icon">
-              <img class="no-lightbox" src="${j.avatar}" onError="this.onerror=null;this.src='${theme.error_img.flink}'" alt="${j.name}" />
-            </div>
-            <div class="flink-item-name">${j.name}</div>
-            <div class="flink-item-desc" title="${j.descr}">${j.descr}</div>
-          </a>
-        </div>`;
-    });
-
-    result += `${className}${classDesc} <div class="flink-list">${listResult}</div>`;
-  });
-
-  pageContent = result + pageContent;
-}
 import Layout from '@src/layout/layout.astro';
 const page = {
   "title": t('page.link'),
@@ -56,7 +29,27 @@ const page = {
 <Layout lang={lang} page={page}>
     <div id="page" class={''}>
         <div id="article-container">
-            <div class="flink" set:html={pageContent}/>
+            <div class="flink">
+              {link && link.map((group) => (
+                <>
+                  {group.class_name && <h2>{group.class_name}</h2>}
+                  {group.class_desc && <div class="flink-desc">{group.class_desc}</div>}
+                  <div class="flink-list">
+                    {group.link_list.map((item) => (
+                      <div class="flink-list-item">
+                        <a href={item.link} title={item.name} target="_blank">
+                          <div class="flink-item-icon">
+                            <img class="no-lightbox" src={item.avatar} alt={item.name} loading="lazy" />
+                          </div>
+                          <div class="flink-item-name">{item.name}</div>
+                          <div class="flink-item-desc" title={item.descr}>{item.descr}</div>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ))}
+            </div>
           </div>
     </div>
 </Layout>

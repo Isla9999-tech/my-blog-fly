@@ -1,43 +1,30 @@
 ---
 import type { Language } from '@src/types';
-import { theme }from '../theme';
-import { getConfig }from '../config';
+import { theme } from '../theme';
+import { getConfig } from '../config';
+import { is_home, is_archive, is_category } from '@src/utils';
 
 interface Props { lang: Language; page: Record<string, any>; }
-const { page,lang } = Astro.props;
-// import Config from './head/config.astro';
-// import ConfigSite from './head/config_site.astro';
+const { page, lang } = Astro.props;
 const config = getConfig(lang);
-// import { useTranslations,is_home,is_archive, is_category } from '@src/utils';
-import { is_home,is_archive, is_category } from '@src/utils';
-// const t = useTranslations(lang);
 
-// import page from '../page'; 
 import '@fortawesome/fontawesome-free/css/all.min.css'
-import '../styles/global.css';  // Tailwind CSS (global + base)
-import '../styles/layout.css';  // Layout component styles
-import '../styles/pages.css';   // Page-specific styles
-import '../styles/tags.css';    // Tag plugins styles
-import '../styles/modes.css';   // Theme modes (readmode)
-import '../styles/search.css';  // Search styles
+import '../styles/global.css';
+import '../styles/layout.css';
+import '../styles/pages.css';
+import '../styles/tags.css';
+import '../styles/modes.css';
+import '../styles/search.css';
 
 const isHome = is_home(Astro.url);
 const isArchive = is_archive(Astro.url);
 const isCategory = is_category(Astro.url);
 
 let pageTitle;
-// pageTitle = config.title || '';
 if (isArchive) {
-  pageTitle = page.title
-  // page.title = findArchivesTitle(page, theme.menu, date);
-// }
-// if (is_tag()) {
-//   pageTitle = _p('page.tag') + ': ' + page.tag;
-} else if (isCategory) {
-  // pageTitle = t('page.category') + ': ' + page.categories;
   pageTitle = page.title;
-// } else if (is_current('/404.html', [strict])) {
-//   pageTitle = _p('error404');
+} else if (isCategory) {
+  pageTitle = page.title;
 } else {
   pageTitle = page.title || config.title || '';
 }
@@ -59,20 +46,9 @@ const themeColor = theme.display_mode === 'dark' ? themeColorDark : themeColorLi
   <meta name="format-detection" content="telephone=no" />
   <meta name="theme-color" content={themeColor} />
 
-  <!-- Open Graph -->
-  <!-- <include src="./head/Open_Graph.astro" /> -->
-
   <link rel="shortcut icon" href={theme.favicon || "/favicon.ico"}>
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-  <!-- <link rel="canonical" href={urlNoIndex(null, config.pretty_urls.trailing_index, config.pretty_urls.trailing_html)} /> -->
 
-  <!-- 預解析 -->
-  <!-- <include src="./head/preconnect.astro" /> -->
-
-  <!-- 網站驗證 -->
-  <!-- <include src="./head/site_verification.astro" /> -->
-
-  <!-- PWA -->
   {theme.pwa?.enable && (
     <>
       <link rel="manifest" href="/manifest.json" />
@@ -82,27 +58,4 @@ const themeColor = theme.display_mode === 'dark' ? themeColorDark : themeColorLi
       <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     </>
   )}
-
-  <!-- {theme.snackbar && theme.snackbar.enable && (
-    <link rel="stylesheet" href={url_for(theme.asset.snackbar_css)} media="print" onload="this.media='all'" />
-  )}
-
-  {theme.lightbox === 'fancybox' && (
-    <link rel="stylesheet" href={url_for(theme.asset.fancybox_css)} media="print" onload="this.media='all'" />
-  )}
-
-  {inject_head_js()} -->
-
-  <!-- google_adsense -->
-  <!-- <include src="./head/google_adsense.astro" /> -->
-
-  <!-- analytics -->
-  <!-- <include src="./head/analytics.astro" /> -->
-
-
-  <!-- global config -->
-  <!-- <Config config={config} lang={lang}/>
-  <ConfigSite /> -->
-
-  <!-- {injectHtml(theme.inject.head)} -->
 </head>

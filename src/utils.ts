@@ -1,18 +1,3 @@
-// export function urlFor(path: string): string {
-//     // const baseUrl = import.meta.env.BASE_URL || '/';
-//     // const baseUrl = '/';
-//     // return new URL(path, baseUrl).toString();
-//     const baseUrl = 'http://localhost:4322';
-//     console.log('urlFor');
-//     try {
-//         return new URL(path, baseUrl).toString();
-//     } catch (error) {
-//         console.error('Invalid URL:', error);
-//         throw new TypeError('Invalid URL');
-//     }
-    
-// }
-
 export function getBgPath(bg_img:string): string {
     return `background-image: url(${bg_img})`;
 }
@@ -70,9 +55,15 @@ export function date(date: Date, format: string): string {
       return `${year}-${month}-${day}`;
     case 'YYYY':
       return `${year}`;
-    case 'relative':
-      // Implement relative date formatting if needed
-      return '';
+    case 'relative': {
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffDays = Math.floor(diffMs / 86400000);
+      if (diffDays < 1) return '今天';
+      if (diffDays < 30) return `${diffDays}天前`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)}个月前`;
+      return `${Math.floor(diffDays / 365)}年前`;
+    }
     default:
       throw new Error(`Unknown date format: ${format}`);
   }

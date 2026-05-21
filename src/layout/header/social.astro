@@ -7,9 +7,10 @@ const { lang } = Astro.props;
 
 const socialIcons = Object.entries(theme.social).map(([icon, value]) => {
   const [link, title, color] = value.split('||').map(i => i.trim());
-  const iconStyle = color ? `color: ${color.replace(/[\'\"]/g, '')};` : '';
+  const safeColor = color && /^#([0-9a-fA-F]{3,8})$|^rgb/.test(color) ? color : '';
+  const iconStyle = safeColor ? `color: ${safeColor};` : '';
   const iconTitle = title || '';
-  const href = iconTitle == "RSS" ? `/${lang}${link}` :link;
+  const href = iconTitle == "RSS" ? `/${lang}${link}` : link;
   return { icon, href, iconStyle, iconTitle };
 });
 ---

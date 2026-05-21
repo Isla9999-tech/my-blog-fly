@@ -14,7 +14,8 @@ const execPromise = promisify(exec);
  */
 const generatePost = async (
   title: string = 'My Post',
-  category: string = '日常笔记'
+  category: string = '日常笔记',
+  lang: string = 'zh-CN'
 ): Promise<void> => {
   try {
     const now = new Date();
@@ -27,7 +28,7 @@ const generatePost = async (
     const second = String(now.getUTCSeconds()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 
-    const abbrlink = randomBytes(2).toString('hex');
+    const abbrlink = randomBytes(4).toString('hex');
     const template = `---
 title: ${title}
 sticky: 0
@@ -51,7 +52,7 @@ Write your content here...
       .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 
     const __dirname = fileURLToPath(new URL('.', import.meta.url));
-    const filePath = join(__dirname, 'content/blog', `${sanitizedTitle}.md`);
+    const filePath = join(__dirname, 'content/blog', lang, `${sanitizedTitle}.md`);
 
     await writeFile(filePath, template, 'utf8');
     console.log(`✨ Created new post: ${filePath}`);
@@ -69,7 +70,7 @@ Write your content here...
 const updateSite = async (): Promise<void> => {
   try {
     // Define your script sync your 'dist' folder
-    const command = 'rclone sync dist CF:/test/dist';
+    const command = 'rclone sync dist CF:blog/dist';
     const { stdout, stderr } = await execPromise(command);
     if (stdout) console.log(stdout);
     if (stderr) console.error(stderr);
@@ -89,11 +90,11 @@ const args = process.argv.slice(3);
 
 switch (command) {
   case 'newpage':
-    generatePost(...args);
+    generatePost(args[0], args[1], args[2]);
     break;
   case 'sync':
     updateSite();
     break;
   default:
-    console.log('Usage:\n pnpm newpage <title> [category] \n pnpm sync');
+    console.log('Usage:\n  pnpm newpage <title> [category] [lang]\n  pnpm sync\n\nExamples:\n  pnpm newpage "Hello World" "日常笔记" zh-CN\n  pnpm newpage "My Post" "Tech" en');
 }

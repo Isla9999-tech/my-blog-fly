@@ -9,7 +9,9 @@
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
 .nav { background: #1a1a2e; color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
 .nav h1 { font-size: 18px; }
+.nav-right { display: flex; gap: 16px; align-items: center; }
 .nav a { color: #e94560; text-decoration: none; font-size: 14px; }
+.nav button { background: none; border: 1px solid #e94560; color: #e94560; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
 .container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
 .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 .tab { padding: 8px 20px; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
@@ -46,9 +48,7 @@ textarea:focus { border-color: #e94560; }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 768px) { .split { grid-template-columns: 1fr; } }
 .hidden { display: none; }
-.tag { display: inline-block; background: #e94560; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; margin: 2px; }
 .help { font-size: 12px; color: #999; margin-top: 4px; }
-/* 全局通知 */
 #toast { position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; }
 .toast-item { padding: 14px 20px; border-radius: 10px; margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; }
 .toast-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -57,13 +57,11 @@ textarea:focus { border-color: #e94560; }
 .toast-close { cursor: pointer; margin-left: auto; font-weight: bold; opacity: 0.5; }
 .toast-close:hover { opacity: 1; }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-/* 按钮内联状态 */
-.btn-status { font-size: 12px; margin-left: 8px; }
+.security-note { background: #fff3cd; color: #856404; border: 1px solid #ffc107; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
 </style>
 </head>
 <body>
 
-<!-- 全局通知容器 -->
 <div id="toast"></div>
 
 <!-- 登录页面 -->
@@ -72,26 +70,33 @@ textarea:focus { border-color: #e94560; }
     <div style="font-size:48px;margin-bottom:16px;">🔐</div>
     <h2 style="margin-bottom:8px;color:#1a1a2e;">管理面板</h2>
     <p style="color:#999;font-size:13px;margin-bottom:24px;">请输入管理员密码</p>
-    <input type="password" id="login-pwd" placeholder="输入密码" style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;text-align:center;margin-bottom:16px;" onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()" style="width:100%;padding:12px;background:#e94560;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600;">登录</button>
-    <div id="login-error" style="color:#e94560;font-size:13px;margin-top:12px;display:none;">密码错误</div>
+    <input type="password" id="login-pwd" placeholder="输入密码" style="width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;text-align:center;margin-bottom:16px;">
+    <button id="login-btn" style="width:100%;padding:12px;background:#e94560;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600;">登录</button>
+    <div id="login-error" style="color:#e94560;font-size:13px;margin-top:12px;display:none;"></div>
   </div>
 </div>
 
-<!-- 主面板（默认隐藏） -->
+<!-- 主面板 -->
 <div id="admin-panel" style="display:none;">
 
 <div class="nav">
   <h1>📝 Isla9999 - 管理面板</h1>
-  <a href="/zh-CN/" target="_blank">查看博客 →</a>
+  <div class="nav-right">
+    <a href="/zh-CN/" target="_blank">查看博客 →</a>
+    <button id="btn-logout">退出登录</button>
+  </div>
 </div>
 
 <div class="container">
+  <div class="security-note">
+    ⚠️ 注意：此管理面板为纯前端实现，密码验证和 GitHub Token 均在浏览器端处理。请勿在公共设备上使用，使用后请退出登录。
+  </div>
+
   <div class="tabs">
-    <div class="tab active" onclick="showTab('write')">✍️ 写文章</div>
-    <div class="tab" onclick="showTab('posts')">📋 文章列表</div>
-    <div class="tab" onclick="showTab('settings')">⚙️ 博客配置</div>
-    <div class="tab" onclick="showTab('help')">❓ 使用帮助</div>
+    <div class="tab active" data-tab="write">✍️ 写文章</div>
+    <div class="tab" data-tab="posts">📋 文章列表</div>
+    <div class="tab" data-tab="settings">⚙️ 博客配置</div>
+    <div class="tab" data-tab="help">❓ 使用帮助</div>
   </div>
 
   <!-- 写文章 -->
@@ -123,21 +128,20 @@ textarea:focus { border-color: #e94560; }
         </div>
       </div>
       <div class="actions">
-        <button class="btn btn-primary" id="btn-save-post" onclick="saveToGitHub()">🚀 保存到 GitHub</button>
-        <button class="btn btn-secondary" onclick="generatePost()">📄 生成文件下载</button>
-        <button class="btn btn-secondary" onclick="clearEditor()">🗑️ 清空</button>
+        <button class="btn btn-primary" id="btn-save-post">🚀 保存到 GitHub</button>
+        <button class="btn btn-secondary" id="btn-generate">📄 生成文件下载</button>
+        <button class="btn btn-secondary" id="btn-clear">🗑️ 清空</button>
       </div>
     </div>
 
     <div id="output-area" class="hidden">
       <div class="card">
         <h2>生成结果</h2>
-        <div id="msg-area"></div>
         <label>生成的 Markdown 文件</label>
         <textarea id="output-md" readonly style="min-height:120px;font-size:12px;"></textarea>
         <div class="actions">
-          <button class="btn btn-primary" onclick="downloadFile()">💾 下载文件</button>
-          <button class="btn btn-secondary" onclick="copyToClipboard()">📋 复制到剪贴板</button>
+          <button class="btn btn-primary" id="btn-download">💾 下载文件</button>
+          <button class="btn btn-secondary" id="btn-copy">📋 复制到剪贴板</button>
         </div>
       </div>
     </div>
@@ -146,7 +150,7 @@ textarea:focus { border-color: #e94560; }
   <!-- 文章列表 -->
   <div id="tab-posts" class="hidden">
     <div class="card">
-      <h2>已有文章 <button class="btn btn-secondary" onclick="loadPostList()" style="font-size:12px;padding:4px 12px;">🔄 刷新</button></h2>
+      <h2>已有文章 <button class="btn btn-secondary" id="btn-refresh" style="font-size:12px;padding:4px 12px;">🔄 刷新</button></h2>
       <ul class="post-list" id="post-list">
         <li style="padding:12px;color:#999;">加载中...</li>
       </ul>
@@ -162,8 +166,8 @@ textarea:focus { border-color: #e94560; }
       <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
       <div class="help">去 GitHub → Settings → Developer settings → Personal access tokens 创建，勾选 repo 权限。</div>
       <div class="actions">
-        <button class="btn btn-primary" onclick="saveToken()">💾 保存 Token</button>
-        <button class="btn btn-secondary" onclick="testToken()">🔍 测试连接</button>
+        <button class="btn btn-primary" id="btn-save-token">💾 保存 Token</button>
+        <button class="btn btn-secondary" id="btn-test-token">🔍 测试连接</button>
       </div>
       <div id="token-status" style="margin-top:8px;font-size:13px;"></div>
     </div>
@@ -177,7 +181,7 @@ textarea:focus { border-color: #e94560; }
       <label>作者名</label>
       <input type="text" id="cfg-author" value="Isla">
       <div class="actions">
-        <button class="btn btn-primary" id="btn-save-cfg" onclick="saveConfig()">💾 保存配置</button>
+        <button class="btn btn-primary" id="btn-save-cfg">💾 保存配置</button>
       </div>
       <div id="cfg-status" style="margin-top:8px;font-size:13px;"></div>
     </div>
@@ -186,9 +190,9 @@ textarea:focus { border-color: #e94560; }
       <h2>文章模板</h2>
       <p>快速复制常用模板：</p>
       <div class="actions">
-        <button class="btn btn-secondary" onclick="insertTemplate('basic')">📝 基础模板</button>
-        <button class="btn btn-secondary" onclick="insertTemplate('code')">💻 代码教程模板</button>
-        <button class="btn btn-secondary" onclick="insertTemplate('photo')">📷 图文模板</button>
+        <button class="btn btn-secondary" data-template="basic">📝 基础模板</button>
+        <button class="btn btn-secondary" data-template="code">💻 代码教程模板</button>
+        <button class="btn btn-secondary" data-template="photo">📷 图文模板</button>
       </div>
     </div>
   </div>
@@ -217,39 +221,77 @@ textarea:focus { border-color: #e94560; }
   </div>
 </div>
 
-</div> <!-- /admin-panel -->
+</div>
 
 <script>
+// ===== HTML 转义 =====
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 // ===== 全局通知 =====
-function toast(msg, type = 'info') {
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  const container = document.getElementById('toast');
-  const el = document.createElement('div');
-  el.className = `toast-item toast-${type}`;
-  el.innerHTML = `<span>${icons[type] || ''}</span><span>${msg}</span><span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+function toast(msg, type) {
+  type = type || 'info';
+  var icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  var container = document.getElementById('toast');
+  var el = document.createElement('div');
+  el.className = 'toast-item toast-' + type;
+  var closeBtn = document.createElement('span');
+  closeBtn.className = 'toast-close';
+  closeBtn.textContent = '✕';
+  closeBtn.onclick = function() { el.remove(); };
+  var iconSpan = document.createElement('span');
+  iconSpan.textContent = icons[type] || '';
+  var msgSpan = document.createElement('span');
+  msgSpan.textContent = msg;
+  el.appendChild(iconSpan);
+  el.appendChild(msgSpan);
+  el.appendChild(closeBtn);
   container.appendChild(el);
-  if (type !== 'error') setTimeout(() => el.remove(), 5000);
+  if (type !== 'error') setTimeout(function() { el.remove(); }, 5000);
 }
 
 // ===== 登录验证 =====
-const PWD_HASH = '3d19b3996c5f62a0e11a6256a73dab834e95285ecf746336622ff87b3b6f34e6';
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+var PWD_HASH = '3d19b3996c5f62a0e11a6256a73dab834e95285ecf746336622ff87b3b6f34e6';
+function sha256(str) {
+  var buf = new TextEncoder().encode(str);
+  return crypto.subtle.digest('SHA-256', buf).then(function(hash) {
+    return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  });
 }
-async function doLogin() {
-  const pwd = document.getElementById('login-pwd').value;
-  const hash = await sha256(pwd);
-  if (hash === PWD_HASH) {
-    sessionStorage.setItem('admin_auth', '1');
-    document.getElementById('login-page').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
-  } else {
-    document.getElementById('login-error').style.display = 'block';
-    document.getElementById('login-error').textContent = '密码错误，请重试';
-    document.getElementById('login-pwd').value = '';
-  }
+
+function doLogin() {
+  var pwd = document.getElementById('login-pwd').value;
+  var errorEl = document.getElementById('login-error');
+  errorEl.style.display = 'none';
+  if (!pwd) { errorEl.textContent = '请输入密码'; errorEl.style.display = 'block'; return; }
+  sha256(pwd).then(function(hash) {
+    if (hash === PWD_HASH) {
+      sessionStorage.setItem('admin_auth', '1');
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+    } else {
+      errorEl.textContent = '密码错误，请重试';
+      errorEl.style.display = 'block';
+      document.getElementById('login-pwd').value = '';
+    }
+  });
 }
+
+function doLogout() {
+  sessionStorage.removeItem('admin_auth');
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('login-pwd').value = '';
+  toast('已退出登录', 'info');
+}
+
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('btn-logout').addEventListener('click', doLogout);
+document.getElementById('login-pwd').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
 if (sessionStorage.getItem('admin_auth') === '1') {
   document.getElementById('login-page').style.display = 'none';
   document.getElementById('admin-panel').style.display = 'block';
@@ -257,378 +299,362 @@ if (sessionStorage.getItem('admin_auth') === '1') {
 
 // ===== Markdown 转 HTML =====
 function md2html(md) {
-  return md
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-    .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-    .replace(/^- (.*$)/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">')
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br>');
+  var html = esc(md);
+  html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+  html = html.replace(/^&gt; (.*$)/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^- (.*$)/gm, '<li>$1</li>');
+  html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
+  html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+  html = html.replace(/\n\n/g, '</p><p>');
+  html = html.replace(/\n/g, '<br>');
+  return '<p>' + html + '</p>';
 }
 
 document.getElementById('post-content').addEventListener('input', function() {
-  document.getElementById('preview').innerHTML = '<p>' + md2html(this.value) + '</p>';
+  document.getElementById('preview').innerHTML = md2html(this.value);
 });
 
 // ===== Tab 切换 =====
-function showTab(name) {
-  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById('tab-' + name).classList.remove('hidden');
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  event.target.classList.add('active');
-  if (name === 'posts') loadPostList();
-}
+document.querySelectorAll('.tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    var name = this.getAttribute('data-tab');
+    document.querySelectorAll('[id^="tab-"]').forEach(function(el) { el.classList.add('hidden'); });
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+    this.classList.add('active');
+    if (name === 'posts') loadPostList();
+  });
+});
 
 // ===== 自动生成 slug =====
 document.getElementById('post-title').addEventListener('input', function() {
-  document.getElementById('post-slug').value = this.value.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
+  var slug = this.value
+    .toLowerCase()
+    .replace(/[一-龥]+/g, function(m) { return m.replace(/\s/g, '-'); })
+    .replace(/[^\w-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-+/g, '-');
+  document.getElementById('post-slug').value = slug;
 });
 
 // ===== GitHub API =====
-const REPO = 'Isla9999-tech/my-blog-fly';
-const BRANCH = 'master';
-const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/${BRANCH}`;
+var REPO = 'Isla9999-tech/my-blog-fly';
+var BRANCH = 'master';
+var RAW_BASE = 'https://raw.githubusercontent.com/' + REPO + '/' + BRANCH;
 
-function getToken() { return localStorage.getItem('gh_token') || ''; }
+function getToken() { return sessionStorage.getItem('gh_token') || ''; }
 
-function saveToken() {
-  const t = document.getElementById('gh-token').value.trim();
+document.getElementById('btn-save-token').addEventListener('click', function() {
+  var t = document.getElementById('gh-token').value.trim();
   if (!t) { showTokenStatus('请输入 Token', 'error'); return; }
-  localStorage.setItem('gh_token', t);
-  showTokenStatus('✅ Token 已保存', 'success');
+  sessionStorage.setItem('gh_token', t);
+  showTokenStatus('✅ Token 已保存（当前会话有效）', 'success');
   toast('Token 已保存', 'success');
-}
+});
 
-async function testToken() {
-  const t = getToken();
+document.getElementById('btn-test-token').addEventListener('click', function() {
+  var t = getToken();
   if (!t) { showTokenStatus('请先保存 Token', 'error'); return; }
-  try {
-    const r = await fetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${t}` } });
-    if (!r.ok) throw new Error('Token 无效');
-    const d = await r.json();
-    showTokenStatus(`✅ 连接成功！用户: ${d.login}`, 'success');
-    toast(`连接成功！用户: ${d.login}`, 'success');
-  } catch (e) { showTokenStatus('❌ ' + e.message, 'error'); toast(e.message, 'error'); }
-}
+  fetch('https://api.github.com/user', { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('Token 无效'); return r.json(); })
+    .then(function(d) { showTokenStatus('✅ 连接成功！用户: ' + d.login, 'success'); toast('连接成功！用户: ' + d.login, 'success'); })
+    .catch(function(e) { showTokenStatus('❌ ' + e.message, 'error'); toast(e.message, 'error'); });
+});
 
 function showTokenStatus(msg, type) {
-  const el = document.getElementById('token-status');
+  var el = document.getElementById('token-status');
   el.style.color = type === 'error' ? '#c00' : '#090';
   el.textContent = msg;
 }
 
-if (localStorage.getItem('gh_token')) document.getElementById('gh-token').value = '********';
+if (sessionStorage.getItem('gh_token')) document.getElementById('gh-token').value = '********';
 
 // ===== 保存文章到 GitHub =====
-async function saveToGitHub() {
-  const btn = document.getElementById('btn-save-post');
-  const t = getToken();
+document.getElementById('btn-save-post').addEventListener('click', function() { saveToGitHub(); });
+
+function saveToGitHub() {
+  var btn = document.getElementById('btn-save-post');
+  var t = getToken();
   if (!t) { toast('请先在设置页面配置 GitHub Token！', 'error'); return; }
 
-  const title = document.getElementById('post-title').value.trim();
-  const slug = document.getElementById('post-slug').value.trim();
-  const category = document.getElementById('post-category').value.trim() || '未分类';
-  const sticky = document.getElementById('post-sticky').value || '0';
-  const content = document.getElementById('post-content').value;
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  var title = document.getElementById('post-title').value.trim();
+  var slug = document.getElementById('post-slug').value.trim();
+  var category = document.getElementById('post-category').value.trim() || '未分类';
+  var sticky = document.getElementById('post-sticky').value || '0';
+  var content = document.getElementById('post-content').value;
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
   if (!title) { toast('请填写文章标题', 'error'); return; }
   if (!slug) { toast('请填写URL路径', 'error'); return; }
 
-  const md = `---\ntitle: ${title}\nabbrlink: ${slug}\ncategories: ${category}\ndate: ${now}\nupdated: ${now}\nsticky: ${sticky}\n---\n\n${content}`;
-  const path = `content/blog/zh-CN/${slug}.md`;
+  var md = '---\ntitle: ' + title + '\nabbrlink: ' + slug + '\ncategories: ' + category + '\ndate: ' + now + '\nupdated: ' + now + '\nsticky: ' + sticky + '\n---\n\n' + content;
+  var path = 'content/blog/zh-CN/' + slug + '.md';
 
   btn.disabled = true;
   btn.textContent = '⏳ 保存中...';
   toast('正在保存到 GitHub...', 'info');
 
-  try {
-    let sha = null;
-    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
-      headers: { Authorization: `Bearer ${t}` }
+  var sha = null;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (r.ok) return r.json().then(function(d) { sha = d.sha; }); })
+    .then(function() {
+      var body = { message: sha ? 'Update post: ' + title : 'New post: ' + title, content: btoa(unescape(encodeURIComponent(md))), branch: BRANCH };
+      if (sha) body.sha = sha;
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, {
+        method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+    })
+    .then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || '保存失败'); }); return r; })
+    .then(function() { return updatePostsJson(t, slug, title, now); })
+    .then(function() {
+      btn.textContent = '✅ 已保存！';
+      toast('文章「' + title + '」已保存到 GitHub！', 'success');
+      setTimeout(function() { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
+    })
+    .catch(function(e) {
+      btn.textContent = '❌ 保存失败';
+      toast('保存失败: ' + e.message, 'error');
+      setTimeout(function() { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
     });
-    if (checkRes.ok) { const data = await checkRes.json(); sha = data.sha; }
-
-    const body = {
-      message: sha ? `Update post: ${title}` : `New post: ${title}`,
-      content: btoa(unescape(encodeURIComponent(md))),
-      branch: BRANCH
-    };
-    if (sha) body.sha = sha;
-
-    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) { const err = await res.json(); throw new Error(err.message || '保存失败'); }
-
-    await updatePostsJson(t, slug, title, now);
-
-    btn.textContent = '✅ 已保存！';
-    toast(`文章「${title}」已保存到 GitHub！`, 'success');
-    setTimeout(() => { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
-  } catch (e) {
-    btn.textContent = '❌ 保存失败';
-    toast('保存失败: ' + e.message, 'error');
-    setTimeout(() => { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
-  }
 }
 
 // ===== 更新 posts.json =====
-async function updatePostsJson(token, slug, title, date) {
-  try {
-    let posts = []; let sha = null;
-    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (checkRes.ok) {
-      const data = await checkRes.json();
-      sha = data.sha;
-      posts = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-    }
-    const existing = posts.findIndex(p => p.name === slug + '.md');
-    const entry = { name: slug + '.md', title: title, date: date };
-    if (existing >= 0) posts[existing] = entry; else posts.push(entry);
-
-    const body = {
-      message: `Update posts.json: ${title}`,
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2)))),
-      branch: BRANCH
-    };
-    if (sha) body.sha = sha;
-    await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  } catch (e) { console.error('更新 posts.json 失败:', e); }
+function updatePostsJson(token, slug, title, date) {
+  var posts = []; var sha = null;
+  return fetch('https://api.github.com/repos/' + REPO + '/contents/public/admin/posts.json', { headers: { Authorization: 'Bearer ' + token } })
+    .then(function(r) { if (r.ok) return r.json().then(function(d) { sha = d.sha; posts = JSON.parse(decodeURIComponent(escape(atob(d.content)))); }); })
+    .then(function() {
+      var existing = posts.findIndex(function(p) { return p.name === slug + '.md'; });
+      var entry = { name: slug + '.md', title: title, date: date };
+      if (existing >= 0) posts[existing] = entry; else posts.push(entry);
+      var body = { message: 'Update posts.json: ' + title, content: btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2)))), branch: BRANCH };
+      if (sha) body.sha = sha;
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/public/admin/posts.json', {
+        method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+    })
+    .catch(function(e) { console.error('更新 posts.json 失败:', e); });
 }
 
-async function removeFromPostsJson(token, filename) {
-  try {
-    let posts = []; let sha = null;
-    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (checkRes.ok) {
-      const data = await checkRes.json();
-      sha = data.sha;
-      posts = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-    }
-    posts = posts.filter(p => p.name !== filename);
-
-    const body = {
-      message: `Remove from posts.json: ${filename}`,
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2)))),
-      branch: BRANCH
-    };
-    if (sha) body.sha = sha;
-    await fetch(`https://api.github.com/repos/${REPO}/contents/public/admin/posts.json`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  } catch (e) { console.error('更新 posts.json 失败:', e); }
+function removeFromPostsJson(token, filename) {
+  var posts = []; var sha = null;
+  return fetch('https://api.github.com/repos/' + REPO + '/contents/public/admin/posts.json', { headers: { Authorization: 'Bearer ' + token } })
+    .then(function(r) { if (r.ok) return r.json().then(function(d) { sha = d.sha; posts = JSON.parse(decodeURIComponent(escape(atob(d.content)))); }); })
+    .then(function() {
+      posts = posts.filter(function(p) { return p.name !== filename; });
+      var body = { message: 'Remove from posts.json: ' + filename, content: btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2)))), branch: BRANCH };
+      if (sha) body.sha = sha;
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/public/admin/posts.json', {
+        method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+    })
+    .catch(function(e) { console.error('更新 posts.json 失败:', e); });
 }
 
 // ===== 保存配置 =====
-async function saveConfig() {
-  const btn = document.getElementById('btn-save-cfg');
-  const t = getToken();
+document.getElementById('btn-save-cfg').addEventListener('click', function() { saveConfig(); });
+
+function saveConfig() {
+  var btn = document.getElementById('btn-save-cfg');
+  var t = getToken();
   if (!t) { toast('请先配置 GitHub Token！', 'error'); return; }
 
-  const title = document.getElementById('cfg-title').value.trim();
-  const subtitle = document.getElementById('cfg-subtitle').value.trim();
-  const author = document.getElementById('cfg-author').value.trim();
+  var title = document.getElementById('cfg-title').value.trim();
+  var subtitle = document.getElementById('cfg-subtitle').value.trim();
+  var author = document.getElementById('cfg-author').value.trim();
 
   btn.disabled = true;
   btn.textContent = '⏳ 保存中...';
 
-  try {
-    const filePath = 'src/config.ts';
-    const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
-      headers: { Authorization: `Bearer ${t}` }
+  var filePath = 'src/config.ts';
+  var fileSha = null;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/' + filePath, { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('获取 config.ts 失败'); return r.json(); })
+    .then(function(fileData) {
+      fileSha = fileData.sha;
+      var content = decodeURIComponent(escape(atob(fileData.content)));
+      content = content.replace(/title: "[^"]*"/, 'title: "' + title + '"');
+      content = content.replace(/description: "[^"]*"/, 'description: "' + subtitle + '"');
+      content = content.replace(/author: "[^"]*"/, 'author: "' + author + '"');
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/' + filePath, {
+        method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Update config: ' + title, content: btoa(unescape(encodeURIComponent(content))), sha: fileSha, branch: BRANCH })
+      });
+    })
+    .then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.message); }); return r; })
+    .then(function() {
+      btn.textContent = '✅ 已保存！';
+      toast('配置已保存！Cloudflare 将自动部署。', 'success');
+      setTimeout(function() { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
+    })
+    .catch(function(e) {
+      btn.textContent = '❌ 保存失败';
+      toast('保存失败: ' + e.message, 'error');
+      setTimeout(function() { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
     });
-    if (!fileRes.ok) throw new Error('获取 config.ts 失败');
-    const fileData = await fileRes.json();
-    let content = decodeURIComponent(escape(atob(fileData.content)));
-
-    content = content.replace(/title: "[^"]*"/, `title: "${title}"`);
-    content = content.replace(/description: "[^"]*"/, `description: "${subtitle}"`);
-    content = content.replace(/author: "[^"]*"/, `author: "${author}"`);
-
-    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `Update config: ${title}`,
-        content: btoa(unescape(encodeURIComponent(content))),
-        sha: fileData.sha,
-        branch: BRANCH
-      })
-    });
-
-    if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
-
-    btn.textContent = '✅ 已保存！';
-    toast('配置已保存！Cloudflare 将自动部署。', 'success');
-    setTimeout(() => { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
-  } catch (e) {
-    btn.textContent = '❌ 保存失败';
-    toast('保存失败: ' + e.message, 'error');
-    setTimeout(() => { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
-  }
 }
 
 // ===== 文章列表 =====
-async function loadPostList() {
-  const list = document.getElementById('post-list');
+document.getElementById('btn-refresh').addEventListener('click', loadPostList);
+
+function loadPostList() {
+  var list = document.getElementById('post-list');
   list.innerHTML = '<li style="padding:12px;color:#999;">加载中...</li>';
-  try {
-    const res = await fetch('/admin/posts.json?' + Date.now());
-    if (!res.ok) throw new Error('获取失败');
-    const posts = await res.json();
-    if (!posts.length) { list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>'; return; }
-    list.innerHTML = posts.map(p => `
-      <li class="post-item">
-        <div>
-          <span class="post-title">${p.title || p.name}</span>
-          <br><span class="post-date">${p.date || ''}</span>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary" onclick="editPost('${p.name}')">✏️ 编辑</button>
-          <button class="btn btn-danger" id="del-${p.name}" onclick="deletePost('${p.name}')">🗑️ 删除</button>
-        </div>
-      </li>
-    `).join('');
-  } catch (e) { list.innerHTML = `<li style="padding:12px;color:#c00;">加载失败: ${e.message}</li>`; }
+  fetch('/admin/posts.json?' + Date.now())
+    .then(function(r) { if (!r.ok) throw new Error('获取失败'); return r.json(); })
+    .then(function(posts) {
+      if (!posts.length) { list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>'; return; }
+      list.innerHTML = '';
+      posts.forEach(function(p) {
+        var li = document.createElement('li');
+        li.className = 'post-item';
+        var info = document.createElement('div');
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'post-title';
+        titleSpan.textContent = p.title || p.name;
+        var dateSpan = document.createElement('span');
+        dateSpan.className = 'post-date';
+        dateSpan.textContent = p.date || '';
+        info.appendChild(titleSpan);
+        info.appendChild(document.createElement('br'));
+        info.appendChild(dateSpan);
+        var actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '6px';
+        var editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary';
+        editBtn.textContent = '✏️ 编辑';
+        editBtn.addEventListener('click', function() { editPost(p.name); });
+        var delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-danger';
+        delBtn.textContent = '🗑️ 删除';
+        delBtn.addEventListener('click', function() { deletePost(p.name, delBtn); });
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+        li.appendChild(info);
+        li.appendChild(actions);
+        list.appendChild(li);
+      });
+    })
+    .catch(function(e) { list.innerHTML = ''; var li = document.createElement('li'); li.style.padding = '12px'; li.style.color = '#c00'; li.textContent = '加载失败: ' + e.message; list.appendChild(li); });
 }
 
 // ===== 编辑文章 =====
-async function editPost(filename) {
+function editPost(filename) {
   toast('正在加载文章...', 'info');
-  try {
-    const res = await fetch(`${RAW_BASE}/content/blog/zh-CN/${filename}`);
-    if (!res.ok) throw new Error('获取失败');
-    const text = await res.text();
-    const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-    if (match) {
-      const meta = match[1], body = match[2];
-      const getVal = (key) => { const m = meta.match(new RegExp(key + ':\\s*(.*)')); return m ? m[1].trim().replace(/^['"]|['"]$/g, '') : ''; };
-      document.getElementById('post-title').value = getVal('title');
-      document.getElementById('post-slug').value = getVal('abbrlink');
-      document.getElementById('post-category').value = getVal('categories');
-      document.getElementById('post-sticky').value = getVal('sticky') || '0';
-      document.getElementById('post-content').value = body;
-      document.getElementById('preview').innerHTML = '<p>' + md2html(body) + '</p>';
-    } else {
-      document.getElementById('post-content').value = text;
-      document.getElementById('preview').innerHTML = '<p>' + md2html(text) + '</p>';
-    }
-    showTab('write');
-    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab')[0].classList.add('active');
-    toast(`已加载: ${filename}`, 'success');
-  } catch (e) { toast('加载失败: ' + e.message, 'error'); }
+  fetch(RAW_BASE + '/content/blog/zh-CN/' + filename)
+    .then(function(r) { if (!r.ok) throw new Error('获取失败'); return r.text(); })
+    .then(function(text) {
+      var match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+      if (match) {
+        var meta = match[1], body = match[2];
+        var getVal = function(key) { var m = meta.match(new RegExp(key + ':\\s*(.*)')); return m ? m[1].trim().replace(/^['"]|['"]$/g, '') : ''; };
+        document.getElementById('post-title').value = getVal('title');
+        document.getElementById('post-slug').value = getVal('abbrlink');
+        document.getElementById('post-category').value = getVal('categories');
+        document.getElementById('post-sticky').value = getVal('sticky') || '0';
+        document.getElementById('post-content').value = body;
+        document.getElementById('preview').innerHTML = md2html(body);
+      } else {
+        document.getElementById('post-content').value = text;
+        document.getElementById('preview').innerHTML = md2html(text);
+      }
+      switchTab('write');
+      toast('已加载: ' + filename, 'success');
+    })
+    .catch(function(e) { toast('加载失败: ' + e.message, 'error'); });
 }
 
 // ===== 删除文章 =====
-async function deletePost(filename) {
-  const t = getToken();
+function deletePost(filename, btn) {
+  var t = getToken();
   if (!t) { toast('请先配置 GitHub Token', 'error'); return; }
-  if (!confirm(`确定删除「${filename}」？此操作不可撤销！`)) return;
+  if (!confirm('确定删除「' + filename + '」？此操作不可撤销！')) return;
 
-  const btn = document.getElementById('del-' + filename);
-  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  btn.disabled = true;
+  btn.textContent = '⏳';
 
-  try {
-    const path = `content/blog/zh-CN/${filename}`;
-    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
-      headers: { Authorization: `Bearer ${t}` }
-    });
-    if (!checkRes.ok) throw new Error('文件不存在');
-    const data = await checkRes.json();
-
-    const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: `Delete post: ${filename}`, sha: data.sha, branch: BRANCH })
-    });
-
-    if (!res.ok) throw new Error('删除失败');
-
-    // 同时更新 posts.json
-    await removeFromPostsJson(t, filename);
-
-    toast(`✅ 已删除: ${filename}`, 'success');
-    loadPostList();
-  } catch (e) {
-    toast('删除失败: ' + e.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '🗑️ 删除'; }
-  }
+  var path = 'content/blog/zh-CN/' + filename;
+  var fileSha = null;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('文件不存在'); return r.json(); })
+    .then(function(data) {
+      fileSha = data.sha;
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, {
+        method: 'DELETE', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Delete post: ' + filename, sha: fileSha, branch: BRANCH })
+      });
+    })
+    .then(function(r) { if (!r.ok) throw new Error('删除失败'); return removeFromPostsJson(t, filename); })
+    .then(function() { toast('✅ 已删除: ' + filename, 'success'); loadPostList(); })
+    .catch(function(e) { toast('删除失败: ' + e.message, 'error'); btn.disabled = false; btn.textContent = '🗑️ 删除'; });
 }
 
-// ===== 其他功能 =====
-function generatePost() {
-  const title = document.getElementById('post-title').value.trim();
-  const slug = document.getElementById('post-slug').value.trim();
-  const category = document.getElementById('post-category').value.trim() || '未分类';
-  const sticky = document.getElementById('post-sticky').value || '0';
-  const content = document.getElementById('post-content').value;
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+// ===== 辅助功能 =====
+document.getElementById('btn-generate').addEventListener('click', function() {
+  var title = document.getElementById('post-title').value.trim();
+  var slug = document.getElementById('post-slug').value.trim();
+  var category = document.getElementById('post-category').value.trim() || '未分类';
+  var sticky = document.getElementById('post-sticky').value || '0';
+  var content = document.getElementById('post-content').value;
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
   if (!title) { toast('请填写文章标题', 'error'); return; }
   if (!slug) { toast('请填写URL路径', 'error'); return; }
-  const md = `---\ntitle: ${title}\nabbrlink: ${slug}\ncategories: ${category}\ndate: ${now}\nupdated: ${now}\nsticky: ${sticky}\n---\n\n${content}`;
+  var md = '---\ntitle: ' + title + '\nabbrlink: ' + slug + '\ncategories: ' + category + '\ndate: ' + now + '\nupdated: ' + now + '\nsticky: ' + sticky + '\n---\n\n' + content;
   document.getElementById('output-md').value = md;
   document.getElementById('output-area').classList.remove('hidden');
   toast('文件已生成，可下载或复制', 'success');
-}
+});
 
-function clearEditor() {
-  ['post-title','post-slug','post-category'].forEach(id => document.getElementById(id).value = '');
+document.getElementById('btn-clear').addEventListener('click', function() {
+  ['post-title', 'post-slug', 'post-category'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('post-sticky').value = '0';
   document.getElementById('post-content').value = '';
   document.getElementById('preview').innerHTML = '';
   document.getElementById('output-area').classList.add('hidden');
-}
+});
 
-function downloadFile() {
-  const md = document.getElementById('output-md').value;
-  const slug = document.getElementById('post-slug').value || 'post';
-  const a = document.createElement('a');
+document.getElementById('btn-download').addEventListener('click', function() {
+  var md = document.getElementById('output-md').value;
+  var slug = document.getElementById('post-slug').value || 'post';
+  var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
   a.download = slug + '.md';
   a.click();
   toast('文件已下载', 'success');
+});
+
+document.getElementById('btn-copy').addEventListener('click', function() {
+  navigator.clipboard.writeText(document.getElementById('output-md').value).then(function() { toast('已复制到剪贴板！', 'success'); });
+});
+
+function switchTab(name) {
+  document.querySelectorAll('[id^="tab-"]').forEach(function(el) { el.classList.add('hidden'); });
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
 }
 
-function copyToClipboard() {
-  navigator.clipboard.writeText(document.getElementById('output-md').value).then(() => toast('已复制到剪贴板！', 'success'));
-}
-
-function insertTemplate(type) {
-  showTab('write');
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab')[0].classList.add('active');
-  const templates = {
-    basic: `## 引言\n\n在这里写引言内容。\n\n## 正文\n\n正文内容。\n\n## 总结\n\n总结内容。`,
-    code: `## 介绍\n\n今天来学习 XXX。\n\n## 代码示例\n\n\`\`\`javascript\nfunction hello() {\n  console.log('Hello World!');\n}\n\`\`\`\n\n## 运行结果\n\n\`\`\`\nHello World!\n\`\`\``,
-    photo: `## 前言\n\n最近拍了一些照片。\n\n![风景照](/img/photo1.jpg)\n\n*拍摄于 XXX*`
-  };
-  document.getElementById('post-content').value = templates[type] || '';
-  document.getElementById('preview').innerHTML = '<p>' + md2html(templates[type]) + '</p>';
-  toast('已插入模板', 'info');
-}
+document.querySelectorAll('[data-template]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var type = this.getAttribute('data-template');
+    switchTab('write');
+    var templates = {
+      basic: '## 引言\n\n在这里写引言内容。\n\n## 正文\n\n正文内容。\n\n## 总结\n\n总结内容。',
+      code: '## 介绍\n\n今天来学习 XXX。\n\n## 代码示例\n\n```javascript\nfunction hello() {\n  console.log(\'Hello World!\');\n}\n```\n\n## 运行结果\n\n```\nHello World!\n```',
+      photo: '## 前言\n\n最近拍了一些照片。\n\n![风景照](/img/photo1.jpg)\n\n*拍摄于 XXX*'
+    };
+    document.getElementById('post-content').value = templates[type] || '';
+    document.getElementById('preview').innerHTML = md2html(templates[type] || '');
+    toast('已插入模板', 'info');
+  });
+});
 
 document.addEventListener('DOMContentLoaded', loadPostList);
 </script>

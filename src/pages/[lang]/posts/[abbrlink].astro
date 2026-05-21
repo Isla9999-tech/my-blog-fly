@@ -1,13 +1,16 @@
 ---
 import type { Language } from '@src/types';
+import type { CollectionEntry } from 'astro:content';
 import { getBlogEntry } from '@src/prework';
 import { render } from 'astro:content';
 import Layout from '@src/layout/layout.astro';
 import Comments from '@src/layout/third-party/comments.astro';
 
+type BlogEntry = CollectionEntry<'cn_blog' | 'en_blog'>;
+
 export async function getStaticPaths() {
   const languages = ['en', 'zh-CN'];
-  const paths: { params: { lang: string; abbrlink: string }; props: { entry: any; lang: string } }[] = [];
+  const paths: { params: { lang: string; abbrlink: string }; props: { entry: BlogEntry; lang: string } }[] = [];
 
   for (const lang of languages) {
     const blogEntries = await getBlogEntry(lang);
@@ -19,7 +22,7 @@ export async function getStaticPaths() {
 
   return paths;
 }
-const { entry, lang } = Astro.props as { entry: any; lang: Language };
+const { entry, lang } = Astro.props as { entry: BlogEntry; lang: Language };
 const { Content, headings } = await render(entry);
 
 ---
@@ -28,9 +31,6 @@ const { Content, headings } = await render(entry);
     <article id="article-container" class="post-content">
       <Content />
     </article>
-    <div class="tag_share">
-      
-    </div>
     <Comments lang={lang}/>
   </div>
 </Layout>

@@ -36,7 +36,7 @@ The project supports Chinese (zh-CN) and English (en) with complete separation:
   - Pages automatically generate for both languages (`/zh-CN/...` and `/en/...`)
   - Language switcher in menu (defined in `src/config.js`)
 
-- **Configuration**: Language-specific settings in `src/config.js`:
+- **Configuration**: Language-specific settings in `src/config.ts`:
   - Separate `configZhCN` and `configEn` objects
   - Different menus, subtitles, and metadata per language
   - Menu format: `"Label": "/path/ || fas fa-icon"`
@@ -44,7 +44,7 @@ The project supports Chinese (zh-CN) and English (en) with complete separation:
 ### Key Configuration Files
 
 - **`astro.config.mjs`**: Main Astro config with sitemap and expressive-code integrations
-- **`src/config.js`**: Theme configuration with language-specific menus, layout, SEO settings
+- **`src/config.ts`**: Theme configuration with language-specific menus, layout, SEO settings
 - **`src/content.config.ts`**: Content collection schemas (title, categories, abbrlink, dates)
 - **`ec.config.mjs`**: Expressive Code config for syntax highlighting
   - Custom grammars: MLIR and LLVM (loaded from `src/grammer/`)
@@ -56,7 +56,7 @@ The project supports Chinese (zh-CN) and English (en) with complete separation:
 - **`src/layout/widget/`**: Modular widgets (TOC, author card, announcements)
 - **`src/components/`**: Reusable UI components
 - **`src/pages/`**: Route definitions using Astro's file-based routing
-- **`src/_scripts/`**: Helper functions organized by type (filters, events, tag helpers)
+- **`src/utils.ts`**: Helper functions (URL detection, date formatting, translations)
 
 ### Styling System
 
@@ -69,9 +69,9 @@ The project supports Chinese (zh-CN) and English (en) with complete separation:
 
 ### Content Creation
 
-1. **Creating Posts**: Use `pnpm newpage <title> [category]` which:
-   - Generates a markdown file in `content/blog/` (you'll need to move it to the correct language directory)
-   - Auto-generates an `abbrlink` (random 4-character hex string for permalinks)
+1. **Creating Posts**: Use `pnpm newpage <title> [category] [lang]` which:
+   - Generates a markdown file in `content/blog/{lang}/` (default: zh-CN)
+   - Auto-generates an `abbrlink` (random 8-character hex string for permalinks)
    - Creates frontmatter with UTC timestamps
 
 2. **Required Frontmatter**:
@@ -116,7 +116,7 @@ The project supports Chinese (zh-CN) and English (en) with complete separation:
 
 ## Project-Specific Notes
 
-- **Site URL**: Configured as `https://mocusez.site` in `astro.config.mjs`
+- **Site URL**: Configured as `https://isla9999.com` in `astro.config.mts`
 - **CLI Tool**: `cli.ts` handles post generation and site deployment (customize `sync` command for your deployment)
 - **FontAwesome**: Integrated globally via `@fortawesome/fontawesome-free` for menu icons
 - **Comment System**: Waline client configured (styles imported globally)

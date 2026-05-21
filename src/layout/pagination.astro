@@ -4,16 +4,15 @@ import { is_home } from '@src/utils';
 
 interface Props { page: Page; }
 const { page } = Astro.props;
-// const paginationOrder = { prev: page.url.prev, next: page.url.next };
 const middle = (() => {
     const path = Astro.url.pathname;
     const match = path.match(/(.*\/)[0-9]+\/?$/);
     return match ? match[1] : (is_home(Astro.url) ? '' : path + '/');
 })();
 
-function generatePageNumbers(current:number, total:number) {
-  const delta = 2; // 当前页码前后显示的页码数量
-  const range = [];
+function generatePageNumbers(current: number, total: number) {
+  const delta = 2;
+  const range: (number | string)[] = [];
   for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
     range.push(i);
   }
@@ -32,42 +31,6 @@ function generatePageNumbers(current:number, total:number) {
 
 const pageNumbers = generatePageNumbers(page.currentPage, page.lastPage);
 ---
-<!-- {isPost ? (
-  <nav id="pagination" class="pagination-post">
-    {Object.entries(paginationOrder).map(([key, direction]) => {
-      if (!direction) return null;
-      const getPostDesc = direction.postDesc || postDesc(direction);
-      let className = key === 'prev' ? (paginationOrder.next ? '' : 'full-width') : (paginationOrder.prev ? '' : 'full-width');
-      className = getPostDesc ? className : `${className} no-desc`;
-
-      return (
-        <a class={`pagination-related ${className}`} href={url_for(direction.path)} title={direction.title} key={key}>
-          {direction.cover_type === 'img' ? (
-            <img
-              class="cover"
-              src={url_for(direction.cover)}
-              onerror={`this.onerror=null;this.src='${url_for(theme.error_img.post_page)}'`}
-              alt={`cover of ${key === 'prev' ? 'previous' : 'next'} post`}
-            />
-          ) : (
-            <div class="cover" style={`background: ${direction.cover || 'var(--default-bg-color)'}`}></div>
-          )}
-          <div class={`info ${key === 'prev' ? '' : 'text-right'}`}>
-            <div class="info-1">
-              <div class="info-item-1">{t(`pagination.${key}`)}</div>
-              <div class="info-item-2">{direction.title}</div>
-            </div>
-            {getPostDesc && (
-              <div class="info-2">
-                <div class="info-item-1">{getPostDesc}</div>
-              </div>
-            )}
-          </div>
-        </a>
-      );
-    })}
-  </nav>
-) : ( -->
 <nav id="pagination">
   <div class="pagination">
     {page.currentPage > 1 && (
@@ -93,4 +56,3 @@ const pageNumbers = generatePageNumbers(page.currentPage, page.lastPage);
     )}
   </div>
 </nav>
-<!-- )} -->

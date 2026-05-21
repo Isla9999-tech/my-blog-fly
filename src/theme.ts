@@ -6,7 +6,7 @@ export const theme: ThemeConfig = {
             enable: true,
             since: 2019,
         },
-        custom_text: '© 2026 Isla',
+        custom_text: 'Powered by Astro & Astrofly',
         copyright: true,
     },
     display_mode: 'light',
@@ -101,6 +101,7 @@ export const theme: ThemeConfig = {
           enable: true,
           post_count: true,
           last_push_date: true,
+          runtime_date: "2025/01/01",
           sort_order: null
         },
         card_post_series: {

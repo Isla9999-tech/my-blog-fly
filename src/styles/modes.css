@@ -22,7 +22,7 @@
   background: var(--readmode-light-color);
 }
 
-[data-theme='dark'] .read-mode {
+.dark .read-mode {
   --font-color: rgba(255, 255, 255, 0.7);
   --readmode-light-color: #0d0d0d;
   --white: rgba(255, 255, 255, 0.9);

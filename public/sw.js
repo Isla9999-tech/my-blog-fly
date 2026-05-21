@@ -1,4 +1,5 @@
 const CACHE_VERSION = 'blog-cache-v1';
+const MAX_CACHE_SIZE = 100;
 
 const STATIC_EXTENSIONS = /\.(css|js|png|jpg|jpeg|webp|gif|svg|ico|woff|woff2|ttf|eot)$/;
 
@@ -18,6 +19,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+async function limitCacheSize(cacheName, maxSize) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxSize) {
+    await cache.delete(keys[0]);
+    await limitCacheSize(cacheName, maxSize);
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
@@ -25,31 +35,34 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Skip cross-origin requests
   if (url.origin !== self.location.origin) return;
 
   if (STATIC_EXTENSIONS.test(url.pathname)) {
-    // Static assets: cache-first (Vite adds content hashes)
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
           if (response.ok) {
             const clone = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(request, clone));
+            caches.open(CACHE_VERSION).then((cache) => {
+              cache.put(request, clone);
+              limitCacheSize(CACHE_VERSION, MAX_CACHE_SIZE);
+            });
           }
           return response;
         });
       })
     );
   } else {
-    // HTML pages: network-first with cache fallback
     event.respondWith(
       fetch(request)
         .then((response) => {
           if (response.ok) {
             const clone = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(request, clone));
+            caches.open(CACHE_VERSION).then((cache) => {
+              cache.put(request, clone);
+              limitCacheSize(CACHE_VERSION, MAX_CACHE_SIZE);
+            });
           }
           return response;
         })

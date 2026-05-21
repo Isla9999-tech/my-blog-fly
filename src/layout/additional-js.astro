@@ -102,99 +102,31 @@ import { theme } from '@src/theme';
             refreshFn();
             unRefreshFn();
 
-            // Dark mode toggle functionality
-            const darkModeBtn = document.getElementById('darkmode')
+            // Dark mode toggle
+            const darkModeBtn = document.getElementById('darkmode');
             if (darkModeBtn) {
                 const updateDarkModeIcon = () => {
-                    const isDark = document.documentElement.classList.contains('dark')
-                    const icon = darkModeBtn.querySelector('i')
+                    const isDark = document.documentElement.classList.contains('dark');
+                    const icon = darkModeBtn.querySelector('i');
                     if (icon) {
-                        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'
+                        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
                     }
-                }
+                };
 
                 const toggleDarkMode = () => {
-                    document.documentElement.classList.toggle('dark')
-                    const isDark = document.documentElement.classList.contains('dark')
-                    localStorage.setItem('theme', isDark ? 'dark' : 'light')
-                    updateDarkModeIcon()
-                }
+                    document.documentElement.classList.toggle('dark');
+                    const isDark = document.documentElement.classList.contains('dark');
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                    updateDarkModeIcon();
+                };
 
-                darkModeBtn.addEventListener('click', toggleDarkMode)
-                updateDarkModeIcon()
+                darkModeBtn.addEventListener('click', toggleDarkMode);
+                updateDarkModeIcon();
             }
-        })
+        });
     </script>
 
-  <!-- {theme.translate.enable && (
-    <script src={url_for(theme.asset.translate)}></script>
-  )} -->
-
-  <!-- {theme.lightbox && (
-    <script src={url_for(theme.asset[theme.lightbox])}></script>
-  )} -->
-
-  <!-- {theme.instantpage && (
-    <script src={url_for(theme.asset.instantpage)} type="module"></script>
-  )} -->
-
-  <!-- {theme.lazyload.enable && (
-    <script src={url_for(theme.asset.lazyload)}></script>
-  )}
-
-  {theme.snackbar.enable && (
-    <script src={url_for(theme.asset.snackbar)}></script>
-  )}
-
-  {theme.pangu.enable && (
-    <include src="../includes/third-party/pangu.astro" />
-  )} -->
-
-  <div class="js-pjax">
-    <!-- {needLoadCountJs && (
-      <include src="../includes/third-party/card-post-count/index.astro" />
-    )} -->
-
-    <!-- <include src="./third-party/math/index.astro" />
-    <include src="./third-party/abcjs/index.astro" /> -->
-
-    <!-- {commentsJsLoad && (
-      <include src="./third-party/comments/js.astro" />
-    )} -->
-  </div>
-
-  <!-- <include src="../includes/third-party/prismjs.astro" /> -->
-
-  <!-- {theme.aside.enable && theme.aside.card_newest_comments.enable && (
-    (theme.pjax.enable || (!is_post() && page.aside !== false)) && (
-      <include src="../includes/third-party/newest-comments/index.astro" />
-    )
-  )} -->
-
-  <!-- {injectHtml(theme.inject.bottom)} -->
-
-  <!-- <include src="../includes/third-party/effect.astro" />
-  <include src="../includes/third-party/chat/index.astro" />
-
-  {theme.aplayerInject && theme.aplayerInject.enable && (
-    (theme.pjax.enable || theme.aplayerInject.per_page || page.aplayer) && (
-      <include src="./third-party/aplayer.astro" />
-    )
-  )} -->
-
-  <!-- {theme.pjax.enable && (
-    <include src="../includes/third-party/pjax.astro" />
-  )} -->
-<!-- 
-  {theme.umami_analytics.enable && (
-    <include src="../includes/third-party/umami_analytics.astro" />
-  )}
-
-  {(theme.busuanzi.site_uv || theme.busuanzi.site_pv || theme.busuanzi.page_pv) && (
-    <script async data-pjax src={theme.asset.busuanzi || '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js'}></script>
-  )}
-
-  <include src="../includes/third-party/search/index.astro" /> -->
+  <div class="js-pjax"></div>
 </div>
 
 {theme.pwa?.enable && (

@@ -2,17 +2,16 @@
 import type { Language } from '@src/types';
 import type { CollectionEntry } from 'astro:content';
 import { useTranslations, date, full_date, date_xml } from '@src/utils';
-import { theme } from '@src/theme';
 import { getConfig } from '@src/config';
 
 interface Props { lang: Language; posts: CollectionEntry<'cn_blog' | 'en_blog'>[]; }
 let year: string;
-const { lang,posts } = Astro.props;
+const { lang, posts } = Astro.props;
 const config = getConfig(lang);
 const t = useTranslations(lang);
 ---
 <div class="article-sort">
-{posts.map((post:any) => {
+{posts.map((post: any) => {
     const article = post.data;
     const articlePath = `/${lang}/posts/${article.abbrlink}`;
     const tempYear = date(article.date, 'YYYY');
@@ -25,45 +24,26 @@ const t = useTranslations(lang);
     <div>
         {isNewYear && <div class="article-sort-item year">{year}</div>}
         <div class={`article-sort-item ${noCoverClass}`}>
-           {(
+          {article.cover && (
             <a class="article-sort-item-img" href={articlePath} title={title}>
-            {(
-                <img
-                src={article.cover}
-                alt={title}
-                onerror={`this.onerror=null;this.src='${theme.error_img.post_page}'`}
-                />
-            )}
+              <img src={article.cover} alt={title} loading="lazy" />
             </a>
-        )}
-        {/* {article.cover && theme.cover.archives_enable && (
-            <a class="article-sort-item-img" href={url_for(article.path)} title={title}>
-            {article.cover_type === 'img' ? (
-                <img
-                src={url_for(article.cover)}
-                alt={title}
-                onerror={`this.onerror=null;this.src='${url_for(theme.error_img.post_page)}'`}
-                />
-            ) : (
-                <div style={`background: ${article.cover}`}></div>
-            )}
-            </a>
-        )} */}
-        <div class="article-sort-item-info">
+          )}
+          <div class="article-sort-item-info">
             <div class="article-sort-item-time">
-            <i class="far fa-calendar-alt"></i>
-            <time
+              <i class="far fa-calendar-alt"></i>
+              <time
                 class="post-meta-date-created"
                 datetime={date_xml(article.date)}
                 title={`${t('post.created')} ${full_date(article.date)}`}
-            >
+              >
                 {date(article.date, config.date_format)}
-            </time>
+              </time>
             </div>
             <a class="article-sort-item-title" href={articlePath} title={title}>
-            {title}
+              {title}
             </a>
-        </div>
+          </div>
         </div>
     </div>
     );
