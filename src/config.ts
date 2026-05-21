@@ -2,7 +2,7 @@ import type { Language, SiteConfig } from './types';
 
 const configZhCN = {
     title: "Isla的博客",
-    description: "既然都“相信”二次元了，那么最不该放弃的，应该是梦想吧",
+    description: "你好啊，小灰毛~~~",
     keywords: "博客,技术,生活",
     author: "Isla",
     copy: {
