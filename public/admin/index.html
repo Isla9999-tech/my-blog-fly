@@ -175,13 +175,14 @@ textarea:focus { border-color: #e94560; }
     <div class="card">
       <h2>站点配置</h2>
       <label>博客标题</label>
-      <input type="text" id="cfg-title" value="Isla的博客">
+      <input type="text" id="cfg-title" placeholder="加载中...">
       <label>副标题</label>
-      <input type="text" id="cfg-subtitle" value="生命不息，折腾不止">
+      <input type="text" id="cfg-subtitle" placeholder="加载中...">
       <label>作者名</label>
-      <input type="text" id="cfg-author" value="Isla">
+      <input type="text" id="cfg-author" placeholder="加载中...">
       <div class="actions">
         <button class="btn btn-primary" id="btn-save-cfg">💾 保存配置</button>
+        <button class="btn btn-secondary" id="btn-refresh-cfg">🔄 重新加载</button>
       </div>
       <div id="cfg-status" style="margin-top:8px;font-size:13px;"></div>
     </div>
@@ -329,6 +330,7 @@ document.querySelectorAll('.tab').forEach(function(tab) {
     document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
     this.classList.add('active');
     if (name === 'posts') loadPostList();
+    if (name === 'settings') loadConfig();
   });
 });
 
@@ -356,6 +358,7 @@ document.getElementById('btn-save-token').addEventListener('click', function() {
   sessionStorage.setItem('gh_token', t);
   showTokenStatus('✅ Token 已保存（当前会话有效）', 'success');
   toast('Token 已保存', 'success');
+  loadConfig();
 });
 
 document.getElementById('btn-test-token').addEventListener('click', function() {
@@ -499,6 +502,37 @@ function saveConfig() {
       setTimeout(function() { btn.textContent = '💾 保存配置'; btn.disabled = false; }, 3000);
     });
 }
+
+// ===== 加载配置 =====
+function loadConfig() {
+  var t = getToken();
+  if (!t) {
+    document.getElementById('cfg-status').style.color = '#c00';
+    document.getElementById('cfg-status').textContent = '请先配置 GitHub Token';
+    return;
+  }
+  document.getElementById('cfg-status').style.color = '#999';
+  document.getElementById('cfg-status').textContent = '正在加载配置...';
+  fetch('https://api.github.com/repos/' + REPO + '/contents/src/config.ts', { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('获取 config.ts 失败'); return r.json(); })
+    .then(function(data) {
+      var content = decodeURIComponent(escape(atob(data.content)));
+      var titleMatch = content.match(/title:\s*"([^"]*)"/);
+      var descMatch = content.match(/description:\s*"([^"]*)"/);
+      var authorMatch = content.match(/author:\s*"([^"]*)"/);
+      if (titleMatch) document.getElementById('cfg-title').value = titleMatch[1];
+      if (descMatch) document.getElementById('cfg-subtitle').value = descMatch[1];
+      if (authorMatch) document.getElementById('cfg-author').value = authorMatch[1];
+      document.getElementById('cfg-status').style.color = '#090';
+      document.getElementById('cfg-status').textContent = '✅ 配置已加载';
+    })
+    .catch(function(e) {
+      document.getElementById('cfg-status').style.color = '#c00';
+      document.getElementById('cfg-status').textContent = '❌ ' + e.message;
+    });
+}
+
+document.getElementById('btn-refresh-cfg').addEventListener('click', loadConfig);
 
 // ===== 文章列表 =====
 document.getElementById('btn-refresh').addEventListener('click', loadPostList);

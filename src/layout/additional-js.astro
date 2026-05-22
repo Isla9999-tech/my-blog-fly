@@ -69,12 +69,16 @@ import { theme } from '@src/theme';
                     animateIn(document.getElementById('menu-mask')!);
                     document.getElementById('sidebar-menus')!.classList.add('open');
                     mobileSidebarOpen = true;
+                    history.pushState({ sidebar: true }, '');
                 },
                 close: () => {
                     overflowPaddingR.remove();
                     animateOut(document.getElementById('menu-mask')!);
                     document.getElementById('sidebar-menus')!.classList.remove('open');
-                    mobileSidebarOpen = false;
+                    if (mobileSidebarOpen) {
+                        mobileSidebarOpen = false;
+                        history.back();
+                    }
                 }
             };
 
@@ -84,9 +88,21 @@ import { theme } from '@src/theme';
                 toggleMenu.addEventListener('click', () => { sidebarFn.open(); });
             };
 
+            const closeMobileMenu = () => {
+                const closeBtn = document.getElementById('sidebar-close');
+                if (closeBtn) closeBtn.addEventListener('click', () => { sidebarFn.close(); });
+            };
+
+            const handleBackButton = () => {
+                window.addEventListener('popstate', () => {
+                    if (mobileSidebarOpen) sidebarFn.close();
+                });
+            };
+
             const refreshFn = () => {
                 initAdjust();
                 openMobileMenu();
+                closeMobileMenu();
             };
 
             const unRefreshFn = () => {
@@ -97,6 +113,8 @@ import { theme } from '@src/theme';
 
                 const menuMask = document.getElementById('menu-mask');
                 menuMask && menuMask.addEventListener('click', () => { sidebarFn.close(); });
+
+                handleBackButton();
             };
 
             refreshFn();
