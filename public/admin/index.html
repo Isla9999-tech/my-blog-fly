@@ -112,6 +112,8 @@ textarea:focus { border-color: #e94560; }
       <div class="help">用于生成链接，如 /posts/my-first-post</div>
       <label>分类</label>
       <input type="text" id="post-category" placeholder="生活">
+      <label>标签（用空格或逗号分隔）</label>
+      <input type="text" id="post-tags" placeholder="博客 生活 随笔">
       <label>置顶权重</label>
       <input type="number" id="post-sticky" value="0" min="0">
       <div class="help">数字越大越靠前，0 不置顶</div>
@@ -435,6 +437,8 @@ function saveToGitHub() {
   var title = document.getElementById('post-title').value.trim();
   var slug = document.getElementById('post-slug').value.trim();
   var category = document.getElementById('post-category').value.trim() || '未分类';
+  var tagsRaw = document.getElementById('post-tags').value.trim();
+  var tags = tagsRaw ? tagsRaw.split(/[\s,，]+/).filter(function(t) { return t; }) : [];
   var sticky = document.getElementById('post-sticky').value || '0';
   var content = document.getElementById('post-content').value;
   var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
@@ -442,7 +446,13 @@ function saveToGitHub() {
   if (!title) { toast('请填写文章标题', 'error'); return; }
   if (!slug) { toast('请填写URL路径', 'error'); return; }
 
-  var md = '---\ntitle: ' + title + '\nabbrlink: ' + slug + '\ncategories: ' + category + '\ndate: ' + now + '\nupdated: ' + now + '\nsticky: ' + sticky + '\n---\n\n' + content;
+  var front = '---\ntitle: ' + title + '\nabbrlink: ' + slug + '\ncategories: ' + category + '\n';
+  if (tags.length) {
+    front += 'tags:\n';
+    tags.forEach(function(tag) { front += '  - ' + tag + '\n'; });
+  }
+  front += 'date: ' + now + '\nupdated: ' + now + '\nsticky: ' + sticky + '\n---\n\n';
+  var md = front + content;
   var path = 'content/blog/zh-CN/' + slug + '.md';
 
   btn.disabled = true;
@@ -742,6 +752,15 @@ function editPost(filename) {
         document.getElementById('post-slug').value = getVal('abbrlink');
         document.getElementById('post-category').value = getVal('categories');
         document.getElementById('post-sticky').value = getVal('sticky') || '0';
+        // Parse tags (YAML list format)
+        var tagsMatch = meta.match(/tags:\s*\n((?:\s+-\s+.+\n?)+)/);
+        if (tagsMatch) {
+          var tagList = tagsMatch[1].match(/- (.+)/g) || [];
+          document.getElementById('post-tags').value = tagList.map(function(t) { return t.replace('- ', '').trim(); }).join(' ');
+        } else {
+          var singleTag = getVal('tags');
+          document.getElementById('post-tags').value = singleTag;
+        }
         document.getElementById('post-content').value = body;
         document.getElementById('preview').innerHTML = md2html(body);
       } else {
@@ -791,19 +810,27 @@ document.getElementById('btn-generate').addEventListener('click', function() {
   var title = document.getElementById('post-title').value.trim();
   var slug = document.getElementById('post-slug').value.trim();
   var category = document.getElementById('post-category').value.trim() || '未分类';
+  var tagsRaw = document.getElementById('post-tags').value.trim();
+  var tags = tagsRaw ? tagsRaw.split(/[\s,，]+/).filter(function(t) { return t; }) : [];
   var sticky = document.getElementById('post-sticky').value || '0';
   var content = document.getElementById('post-content').value;
   var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
   if (!title) { toast('请填写文章标题', 'error'); return; }
   if (!slug) { toast('请填写URL路径', 'error'); return; }
-  var md = '---\ntitle: ' + title + '\nabbrlink: ' + slug + '\ncategories: ' + category + '\ndate: ' + now + '\nupdated: ' + now + '\nsticky: ' + sticky + '\n---\n\n' + content;
+  var front = '---\ntitle: ' + title + '\nabbrlink: ' + slug + '\ncategories: ' + category + '\n';
+  if (tags.length) {
+    front += 'tags:\n';
+    tags.forEach(function(tag) { front += '  - ' + tag + '\n'; });
+  }
+  front += 'date: ' + now + '\nupdated: ' + now + '\nsticky: ' + sticky + '\n---\n\n';
+  var md = front + content;
   document.getElementById('output-md').value = md;
   document.getElementById('output-area').classList.remove('hidden');
   toast('文件已生成，可下载或复制', 'success');
 });
 
 document.getElementById('btn-clear').addEventListener('click', function() {
-  ['post-title', 'post-slug', 'post-category'].forEach(function(id) { document.getElementById(id).value = ''; });
+  ['post-title', 'post-slug', 'post-category', 'post-tags'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('post-sticky').value = '0';
   document.getElementById('post-content').value = '';
   document.getElementById('preview').innerHTML = '';
