@@ -4,7 +4,7 @@ const configZhCN = {
     title: "Isla的博客",
     description: "你好啊，小灰毛~~~",
     keywords: "博客,技术,生活",
-    author: "Isla",
+    author: "Isla9999",
     copy: {
         enable: true,
         copyright: {
