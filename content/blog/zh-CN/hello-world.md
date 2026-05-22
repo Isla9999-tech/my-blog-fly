@@ -2,6 +2,10 @@
 title: 你好世界
 abbrlink: hello-world
 categories: 生活
+tags:
+  - 博客
+  - 生活
+  - 随笔
 date: 2026-05-22 11:03:18
 updated: 2026-05-22 11:03:18
 sticky: 1
