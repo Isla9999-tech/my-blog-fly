@@ -33,4 +33,4 @@ src/_scripts/
 
 *.sh
 
-.omc
+.omc.wrangler/
