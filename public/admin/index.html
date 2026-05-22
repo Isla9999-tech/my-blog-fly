@@ -95,6 +95,8 @@ textarea:focus { border-color: #e94560; }
   <div class="tabs">
     <div class="tab active" data-tab="write">✍️ 写文章</div>
     <div class="tab" data-tab="posts">📋 文章列表</div>
+    <div class="tab" data-tab="links">🔗 友链管理</div>
+    <div class="tab" data-tab="comments">💬 评论管理</div>
     <div class="tab" data-tab="settings">⚙️ 博客配置</div>
     <div class="tab" data-tab="help">❓ 使用帮助</div>
   </div>
@@ -188,6 +190,15 @@ textarea:focus { border-color: #e94560; }
     </div>
 
     <div class="card">
+      <h2>📢 侧边栏公告</h2>
+      <textarea id="cfg-announcement" rows="3" placeholder="加载中..." style="min-height:80px;"></textarea>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-save-announcement">💾 保存公告</button>
+      </div>
+      <div id="announcement-status" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+
+    <div class="card">
       <h2>文章模板</h2>
       <p>快速复制常用模板：</p>
       <div class="actions">
@@ -195,6 +206,36 @@ textarea:focus { border-color: #e94560; }
         <button class="btn btn-secondary" data-template="code">💻 代码教程模板</button>
         <button class="btn btn-secondary" data-template="photo">📷 图文模板</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 友链管理 -->
+  <div id="tab-links" class="hidden">
+    <div class="card">
+      <h2>🔗 友情链接 <button class="btn btn-secondary" id="btn-refresh-links" style="font-size:12px;padding:4px 12px;">🔄 刷新</button></h2>
+      <div id="links-list" style="margin-bottom:16px;">加载中...</div>
+      <h3 style="margin-bottom:8px;">添加新友链</h3>
+      <label>名称</label>
+      <input type="text" id="link-name" placeholder="博客名称">
+      <label>链接</label>
+      <input type="text" id="link-url" placeholder="https://example.com">
+      <label>头像 URL</label>
+      <input type="text" id="link-avatar" placeholder="https://example.com/avatar.png">
+      <label>描述</label>
+      <input type="text" id="link-descr" placeholder="一句话描述">
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-add-link">➕ 添加友链</button>
+      </div>
+      <div id="links-status" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- 评论管理 -->
+  <div id="tab-comments" class="hidden">
+    <div class="card">
+      <h2>💬 评论管理 <button class="btn btn-secondary" id="btn-refresh-comments" style="font-size:12px;padding:4px 12px;">🔄 刷新</button></h2>
+      <div id="admin-comments-list" style="margin-bottom:16px;">加载中...</div>
+      <div class="help">评论数据存储在 Cloudflare D1 数据库中，需部署后才能加载。</div>
     </div>
   </div>
 
@@ -687,6 +728,196 @@ document.querySelectorAll('[data-template]').forEach(function(btn) {
     document.getElementById('post-content').value = templates[type] || '';
     document.getElementById('preview').innerHTML = md2html(templates[type] || '');
     toast('已插入模板', 'info');
+  });
+});
+
+// ===== 友链管理 =====
+var LINKS_PATH = 'content/link.zh-CN.json';
+
+function loadLinks() {
+  var t = getToken();
+  var container = document.getElementById('links-list');
+  if (!t) { container.innerHTML = '<div style="color:#c00;">请先配置 GitHub Token</div>'; return; }
+  container.innerHTML = '<div style="color:#999;">加载中...</div>';
+  fetch('https://api.github.com/repos/' + REPO + '/contents/' + LINKS_PATH, { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('获取友链失败'); return r.json(); })
+    .then(function(data) {
+      var links = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+      window._linksSha = data.sha;
+      window._linksData = links;
+      renderLinks(links);
+    })
+    .catch(function(e) { container.innerHTML = '<div style="color:#c00;">' + e.message + '</div>'; });
+}
+
+function renderLinks(groups) {
+  var container = document.getElementById('links-list');
+  if (!groups.length) { container.innerHTML = '<div style="color:#999;">暂无友链</div>'; return; }
+  var html = '';
+  groups.forEach(function(group, gi) {
+    html += '<div style="margin-bottom:16px;padding:12px;background:#f9f9f9;border-radius:8px;">';
+    html += '<div style="font-weight:600;margin-bottom:8px;">' + esc(group.class_name) + ' <span style="color:#999;font-weight:normal;">- ' + esc(group.class_desc) + '</span></div>';
+    (group.link_list || []).forEach(function(link, li) {
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;">';
+      html += '<span style="flex:1;">🔗 <strong>' + esc(link.name) + '</strong> - <a href="' + esc(link.link) + '" target="_blank" style="color:#49b1f5;">' + esc(link.link) + '</a></span>';
+      html += '<button class="btn btn-danger" style="font-size:11px;padding:2px 8px;" onclick="deleteLink(' + gi + ',' + li + ')">删除</button>';
+      html += '</div>';
+    });
+    html += '<button class="btn btn-danger" style="font-size:11px;padding:2px 8px;margin-top:8px;" onclick="deleteLinkGroup(' + gi + ')">删除整组</button>';
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function saveLinks(links, msg) {
+  var t = getToken();
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(links, null, 2))));
+  return fetch('https://api.github.com/repos/' + REPO + '/contents/' + LINKS_PATH, {
+    method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg, content: content, sha: window._linksSha, branch: BRANCH })
+  }).then(function(r) { if (!r.ok) throw new Error('保存失败'); return r; });
+}
+
+window.deleteLink = function(gi, li) {
+  var links = window._linksData;
+  var name = links[gi].link_list[li].name;
+  if (!confirm('确定删除友链「' + name + '」？')) return;
+  links[gi].link_list.splice(li, 1);
+  saveLinks(links, 'Delete link: ' + name).then(function() {
+    toast('已删除: ' + name, 'success');
+    loadLinks();
+  }).catch(function(e) { toast('删除失败: ' + e.message, 'error'); });
+};
+
+window.deleteLinkGroup = function(gi) {
+  var links = window._linksData;
+  var name = links[gi].class_name;
+  if (!confirm('确定删除整组「' + name + '」？')) return;
+  links.splice(gi, 1);
+  saveLinks(links, 'Delete link group: ' + name).then(function() {
+    toast('已删除: ' + name, 'success');
+    loadLinks();
+  }).catch(function(e) { toast('删除失败: ' + e.message, 'error'); });
+};
+
+document.getElementById('btn-add-link').addEventListener('click', function() {
+  var name = document.getElementById('link-name').value.trim();
+  var url = document.getElementById('link-url').value.trim();
+  var avatar = document.getElementById('link-avatar').value.trim();
+  var descr = document.getElementById('link-descr').value.trim();
+  var status = document.getElementById('links-status');
+  if (!name || !url) { status.textContent = '请填写名称和链接'; status.style.color = '#c00'; return; }
+
+  var links = window._linksData || [];
+  if (!links.length) {
+    links.push({ class_name: '友情链接', class_desc: '欢迎互换友链', link_list: [] });
+  }
+  links[0].link_list.push({ name: name, link: url, avatar: avatar || '', descr: descr || '' });
+
+  var btn = this;
+  btn.disabled = true;
+  saveLinks(links, 'Add link: ' + name).then(function() {
+    toast('已添加: ' + name, 'success');
+    document.getElementById('link-name').value = '';
+    document.getElementById('link-url').value = '';
+    document.getElementById('link-avatar').value = '';
+    document.getElementById('link-descr').value = '';
+    loadLinks();
+  }).catch(function(e) { toast('添加失败: ' + e.message, 'error'); })
+  .finally(function() { btn.disabled = false; });
+});
+
+document.getElementById('btn-refresh-links').addEventListener('click', loadLinks);
+
+// ===== 评论管理 =====
+function loadAdminComments() {
+  var container = document.getElementById('admin-comments-list');
+  container.innerHTML = '<div style="color:#999;">加载中...</div>';
+  fetch('/api/comments?admin=1')
+    .then(function(r) { if (!r.ok) throw new Error('加载失败（需部署后才能使用）'); return r.json(); })
+    .then(function(comments) {
+      if (!comments.length) { container.innerHTML = '<div style="color:#999;">暂无评论</div>'; return; }
+      var html = '';
+      comments.forEach(function(c) {
+        html += '<div style="padding:12px;border-bottom:1px solid #eee;display:flex;gap:12px;align-items:flex-start;">';
+        html += '<div style="flex:1;">';
+        html += '<div style="font-weight:600;">' + esc(c.nickname);
+        if (c.email) html += ' <span style="color:#999;font-weight:normal;">(' + esc(c.email) + ')</span>';
+        html += ' <span style="color:#999;font-weight:normal;font-size:12px;">- ' + esc(c.slug) + '</span></div>';
+        html += '<div style="margin:4px 0;color:#555;">' + esc(c.content) + '</div>';
+        html += '<div style="font-size:12px;color:#999;">' + (c.created_at || '') + ' | browser: ' + (c.browser_id || '无') + '</div>';
+        html += '</div>';
+        html += '<button class="btn btn-danger" style="font-size:12px;padding:4px 12px;flex-shrink:0;" onclick="deleteComment(' + c.id + ')">删除</button>';
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    })
+    .catch(function(e) { container.innerHTML = '<div style="color:#c00;">' + e.message + '</div>'; });
+}
+
+window.deleteComment = function(id) {
+  if (!confirm('确定删除这条评论？')) return;
+  fetch('/api/comments', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id })
+  }).then(function(r) { if (!r.ok) throw new Error('删除失败'); return r.json(); })
+  .then(function() { toast('评论已删除', 'success'); loadAdminComments(); })
+  .catch(function(e) { toast(e.message, 'error'); });
+};
+
+document.getElementById('btn-refresh-comments').addEventListener('click', loadAdminComments);
+
+// ===== 公告编辑 =====
+function loadAnnouncement() {
+  var t = getToken();
+  if (!t) return;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/src/config.ts', { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('获取失败'); return r.json(); })
+    .then(function(data) {
+      var content = decodeURIComponent(escape(atob(data.content)));
+      window._configSha = data.sha;
+      window._configContent = content;
+      var match = content.match(/card_announcement[\s\S]*?content:\s*"([^"]*)"/);
+      if (match) document.getElementById('cfg-announcement').value = match[1];
+    })
+    .catch(function() {});
+}
+
+document.getElementById('btn-save-announcement').addEventListener('click', function() {
+  var t = getToken();
+  var text = document.getElementById('cfg-announcement').value.trim();
+  var status = document.getElementById('announcement-status');
+  if (!t) { status.textContent = '请先配置 Token'; status.style.color = '#c00'; return; }
+  if (!text) { status.textContent = '公告不能为空'; status.style.color = '#c00'; return; }
+
+  var content = window._configContent;
+  content = content.replace(/(card_announcement[\s\S]*?content:\s*)"[^"]*"/, '$1"' + text + '"');
+
+  var btn = this;
+  btn.disabled = true;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/src/config.ts', {
+    method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: 'Update announcement', content: btoa(unescape(encodeURIComponent(content))), sha: window._configSha, branch: BRANCH })
+  }).then(function(r) { if (!r.ok) throw new Error('保存失败'); return r; })
+  .then(function() {
+    status.textContent = '✅ 公告已保存';
+    status.style.color = '#090';
+    toast('公告已保存！', 'success');
+  }).catch(function(e) {
+    status.textContent = '❌ ' + e.message;
+    status.style.color = '#c00';
+  }).finally(function() { btn.disabled = false; });
+});
+
+// Tab 切换时加载对应数据
+var origTabClick = document.querySelectorAll('.tab');
+origTabClick.forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    var name = this.getAttribute('data-tab');
+    if (name === 'links') loadLinks();
+    if (name === 'comments') loadAdminComments();
+    if (name === 'settings') { loadConfig(); loadAnnouncement(); }
   });
 });
 

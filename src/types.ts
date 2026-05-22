@@ -189,12 +189,6 @@ export interface ThemeConfig {
     hide: string | null;
     show: string | null;
   };
-  waline: {
-    serverURL: string;
-    bg: string;
-    pageview: boolean;
-    option: Record<string, unknown> | null;
-  };
   pwa?: {
     enable: boolean;
     name?: string;

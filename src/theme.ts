@@ -147,12 +147,6 @@ export const theme: ThemeConfig = {
         hide: null,
         show: null
     },
-    waline: {
-        serverURL: "",
-        bg: "mysql",
-        pageview: true,
-        option: null
-    },
     pwa: {
         enable: true,
         name: "Isla9999的博客",
