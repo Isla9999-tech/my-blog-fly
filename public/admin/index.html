@@ -400,6 +400,7 @@ document.getElementById('btn-save-token').addEventListener('click', function() {
   showTokenStatus('✅ Token 已保存（当前会话有效）', 'success');
   toast('Token 已保存', 'success');
   loadConfig();
+  loadPostList();
 });
 
 document.getElementById('btn-test-token').addEventListener('click', function() {
@@ -407,7 +408,11 @@ document.getElementById('btn-test-token').addEventListener('click', function() {
   if (!t) { showTokenStatus('请先保存 Token', 'error'); return; }
   fetch('https://api.github.com/user', { headers: { Authorization: 'Bearer ' + t } })
     .then(function(r) { if (!r.ok) throw new Error('Token 无效'); return r.json(); })
-    .then(function(d) { showTokenStatus('✅ 连接成功！用户: ' + d.login, 'success'); toast('连接成功！用户: ' + d.login, 'success'); })
+    .then(function(d) {
+      showTokenStatus('✅ 连接成功！用户: ' + d.login, 'success');
+      toast('连接成功！用户: ' + d.login, 'success');
+      loadPostList();
+    })
     .catch(function(e) { showTokenStatus('❌ ' + e.message, 'error'); toast(e.message, 'error'); });
 });
 
@@ -444,21 +449,37 @@ function saveToGitHub() {
   btn.textContent = '⏳ 保存中...';
   toast('正在保存到 GitHub...', 'info');
 
-  var sha = null;
-  fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, { headers: { Authorization: 'Bearer ' + t } })
-    .then(function(r) { if (r.ok) return r.json().then(function(d) { sha = d.sha; }); })
-    .then(function() {
-      var body = { message: sha ? 'Update post: ' + title : 'New post: ' + title, content: btoa(unescape(encodeURIComponent(md))), branch: BRANCH };
-      if (sha) body.sha = sha;
-      return fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, {
-        method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  // 判断是更新还是新建
+  var isUpdate = _editingFile.name === slug + '.md' && _editingFile.sha;
+  var sha = isUpdate ? _editingFile.sha : null;
+
+  var doSave = function(shaVal) {
+    var body = { message: shaVal ? 'Update post: ' + title : 'New post: ' + title, content: btoa(unescape(encodeURIComponent(md))), branch: BRANCH };
+    if (shaVal) body.sha = shaVal;
+    return fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, {
+      method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+  };
+
+  var savePromise;
+  if (isUpdate) {
+    savePromise = doSave(sha);
+  } else {
+    // 新建文件时，先检查是否已存在
+    savePromise = fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, { headers: { Authorization: 'Bearer ' + t } })
+      .then(function(r) {
+        if (r.ok) return r.json().then(function(d) { return doSave(d.sha); });
+        return doSave(null);
       });
-    })
+  }
+
+  savePromise
     .then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || '保存失败'); }); return r; })
     .then(function() { return updatePostsJson(t, slug, title, now); })
     .then(function() {
       btn.textContent = '✅ 已保存！';
-      toast('文章「' + title + '」已保存到 GitHub！', 'success');
+      toast('文章「' + title + '」已保存到 GitHub！Cloudflare 将自动部署。', 'success');
+      _editingFile = { name: null, sha: null };
       setTimeout(function() { btn.textContent = '🚀 保存到 GitHub'; btn.disabled = false; }, 3000);
     })
     .catch(function(e) {
@@ -575,16 +596,59 @@ function loadConfig() {
 
 document.getElementById('btn-refresh-cfg').addEventListener('click', loadConfig);
 
-// ===== 文章列表 =====
+// ===== 文章列表（从 GitHub API 实时获取） =====
 document.getElementById('btn-refresh').addEventListener('click', loadPostList);
 
 function loadPostList() {
   var list = document.getElementById('post-list');
+  var t = getToken();
   list.innerHTML = '<li style="padding:12px;color:#999;">加载中...</li>';
-  fetch('/admin/posts.json?' + Date.now())
-    .then(function(r) { if (!r.ok) throw new Error('获取失败'); return r.json(); })
+
+  if (!t) {
+    list.innerHTML = '<li style="padding:12px;color:#c00;">请先在设置页面配置 GitHub Token</li>';
+    return;
+  }
+
+  // 从 GitHub API 实时获取 content/blog/zh-CN/ 目录下的文件
+  fetch('https://api.github.com/repos/' + REPO + '/contents/content/blog/zh-CN', { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) {
+      if (!r.ok) throw new Error('获取文章列表失败（请检查 Token 权限）');
+      return r.json();
+    })
+    .then(function(files) {
+      // 过滤出 .md 文件
+      var mdFiles = files.filter(function(f) { return f.name.endsWith('.md'); });
+      if (!mdFiles.length) {
+        list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>';
+        return;
+      }
+
+      // 批量获取每篇文章的标题
+      var promises = mdFiles.map(function(file) {
+        return fetch(file.download_url)
+          .then(function(r) { return r.text(); })
+          .then(function(content) {
+            var titleMatch = content.match(/^---[\s\S]*?title:\s*['"]?([^'"\n]+)['"]?/m);
+            var dateMatch = content.match(/^---[\s\S]*?date:\s*(.+)/m);
+            return {
+              name: file.name,
+              title: titleMatch ? titleMatch[1].trim() : file.name.replace('.md', ''),
+              date: dateMatch ? dateMatch[1].trim() : '',
+              sha: file.sha
+            };
+          })
+          .catch(function() {
+            return { name: file.name, title: file.name.replace('.md', ''), date: '', sha: file.sha };
+          });
+      });
+
+      return Promise.all(promises);
+    })
     .then(function(posts) {
-      if (!posts.length) { list.innerHTML = '<li style="padding:12px;color:#999;">暂无文章</li>'; return; }
+      if (!posts || !posts.length) return;
+      // 按日期倒序排列
+      posts.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
       list.innerHTML = '';
       posts.forEach(function(p) {
         var li = document.createElement('li');
@@ -592,10 +656,10 @@ function loadPostList() {
         var info = document.createElement('div');
         var titleSpan = document.createElement('span');
         titleSpan.className = 'post-title';
-        titleSpan.textContent = p.title || p.name;
+        titleSpan.textContent = p.title;
         var dateSpan = document.createElement('span');
         dateSpan.className = 'post-date';
-        dateSpan.textContent = p.date || '';
+        dateSpan.textContent = p.date;
         info.appendChild(titleSpan);
         info.appendChild(document.createElement('br'));
         info.appendChild(dateSpan);
@@ -616,16 +680,60 @@ function loadPostList() {
         li.appendChild(actions);
         list.appendChild(li);
       });
+
+      // 同步更新 posts.json
+      syncPostsJson(t, posts);
     })
-    .catch(function(e) { list.innerHTML = ''; var li = document.createElement('li'); li.style.padding = '12px'; li.style.color = '#c00'; li.textContent = '加载失败: ' + e.message; list.appendChild(li); });
+    .catch(function(e) {
+      list.innerHTML = '';
+      var li = document.createElement('li');
+      li.style.padding = '12px';
+      li.style.color = '#c00';
+      li.textContent = '加载失败: ' + e.message;
+      list.appendChild(li);
+    });
+}
+
+// 同步 posts.json 以保持兼容
+function syncPostsJson(token, posts) {
+  var postsData = posts.map(function(p) {
+    return { name: p.name, title: p.title, date: p.date };
+  });
+  var sha = null;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/public/admin/posts.json', { headers: { Authorization: 'Bearer ' + token } })
+    .then(function(r) { if (r.ok) return r.json().then(function(d) { sha = d.sha; }); })
+    .then(function() {
+      var body = {
+        message: 'Sync posts.json from admin',
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(postsData, null, 2)))),
+        branch: BRANCH
+      };
+      if (sha) body.sha = sha;
+      return fetch('https://api.github.com/repos/' + REPO + '/contents/public/admin/posts.json', {
+        method: 'PUT',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    })
+    .catch(function(e) { console.error('同步 posts.json 失败:', e); });
 }
 
 // ===== 编辑文章 =====
+// 存储当前编辑文件的信息
+var _editingFile = { name: null, sha: null };
+
 function editPost(filename) {
+  var t = getToken();
+  if (!t) { toast('请先配置 GitHub Token', 'error'); return; }
   toast('正在加载文章...', 'info');
-  fetch(RAW_BASE + '/content/blog/zh-CN/' + filename)
-    .then(function(r) { if (!r.ok) throw new Error('获取失败'); return r.text(); })
-    .then(function(text) {
+
+  var path = 'content/blog/zh-CN/' + filename;
+  fetch('https://api.github.com/repos/' + REPO + '/contents/' + path, { headers: { Authorization: 'Bearer ' + t } })
+    .then(function(r) { if (!r.ok) throw new Error('获取失败'); return r.json(); })
+    .then(function(data) {
+      _editingFile.name = filename;
+      _editingFile.sha = data.sha;
+      var text = decodeURIComponent(escape(atob(data.content)));
       var match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
       if (match) {
         var meta = match[1], body = match[2];
@@ -667,7 +775,14 @@ function deletePost(filename, btn) {
       });
     })
     .then(function(r) { if (!r.ok) throw new Error('删除失败'); return removeFromPostsJson(t, filename); })
-    .then(function() { toast('✅ 已删除: ' + filename, 'success'); loadPostList(); })
+    .then(function() {
+      toast('✅ 已删除: ' + filename, 'success');
+      // 清除编辑状态
+      if (_editingFile.name === filename) {
+        _editingFile = { name: null, sha: null };
+      }
+      loadPostList();
+    })
     .catch(function(e) { toast('删除失败: ' + e.message, 'error'); btn.disabled = false; btn.textContent = '🗑️ 删除'; });
 }
 

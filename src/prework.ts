@@ -26,7 +26,7 @@ export async function getCategoryList(lang: string): Promise<{ name: string; pat
         const category = entry.data.categories;
         if (category) {
             if (!categoryMap[category]) {
-                categoryMap[category] = { name: category, path: `/categories/${category}`, count: 0 };
+                categoryMap[category] = { name: category, path: `/${lang}/categories/${category}`, count: 0 };
             }
             categoryMap[category].count += 1;
         }

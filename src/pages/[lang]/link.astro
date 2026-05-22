@@ -50,6 +50,109 @@ const page = {
                 </>
               ))}
             </div>
+
+            {/* 申请友链区域 */}
+            <div class="link-apply-section">
+              <h2>{lang === 'zh-CN' ? '申请友链' : 'Apply for Friend Link'}</h2>
+              <div class="link-apply-desc">
+                {lang === 'zh-CN'
+                  ? '欢迎申请交换友链！请确保你的网站已添加本站友链，然后填写以下信息提交申请。'
+                  : 'Welcome to apply for friend link exchange! Please make sure your site has added our link, then fill in the form below.'}
+              </div>
+              <div class="link-apply-rules">
+                <h3>{lang === 'zh-CN' ? '申请要求' : 'Requirements'}</h3>
+                <ul>
+                  <li>{lang === 'zh-CN' ? '网站可以正常访问' : 'Website is accessible'}</li>
+                  <li>{lang === 'zh-CN' ? '已添加本站友链' : 'Already added our link'}</li>
+                  <li>{lang === 'zh-CN' ? '内容健康积极' : 'Content is healthy and positive'}</li>
+                </ul>
+              </div>
+              <div class="link-apply-info">
+                <h3>{lang === 'zh-CN' ? '本站信息' : 'Our Site Info'}</h3>
+                <div class="link-apply-info-item">
+                  <span class="link-apply-label">{lang === 'zh-CN' ? '名称：' : 'Name: '}</span>
+                  <code>Isla's Blog</code>
+                </div>
+                <div class="link-apply-info-item">
+                  <span class="link-apply-label">{lang === 'zh-CN' ? '链接：' : 'Link: '}</span>
+                  <code>https://isla9999.com</code>
+                </div>
+                <div class="link-apply-info-item">
+                  <span class="link-apply-label">{lang === 'zh-CN' ? '描述：' : 'Description: '}</span>
+                  <code>{lang === 'zh-CN' ? '一个分享技术与生活的博客' : 'A blog sharing tech and life'}</code>
+                </div>
+              </div>
+              <div class="link-apply-notice">
+                {lang === 'zh-CN'
+                  ? '请通过评论区或邮件联系我提交友链申请，我会尽快审核通过。'
+                  : 'Please submit your application via comments or email, I will review it as soon as possible.'}
+              </div>
+            </div>
           </div>
     </div>
 </Layout>
+
+<style>
+  .link-apply-section {
+    margin-top: 40px;
+    padding: 24px;
+    background: var(--card-bg, #fff);
+    border-radius: 12px;
+    border: 1px solid var(--light-grey, #eee);
+  }
+  .link-apply-section h2 {
+    margin-bottom: 16px;
+    font-size: 1.4em;
+    color: var(--text-highlight-color, #333);
+  }
+  .link-apply-section h3 {
+    margin: 16px 0 8px;
+    font-size: 1.1em;
+    color: var(--text-highlight-color, #333);
+  }
+  .link-apply-desc {
+    color: var(--font-color, #555);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+  .link-apply-rules ul {
+    list-style: disc;
+    padding-left: 20px;
+    color: var(--font-color, #555);
+  }
+  .link-apply-rules li {
+    margin: 6px 0;
+    line-height: 1.6;
+  }
+  .link-apply-info {
+    background: var(--hljs-bg, #f6f8fa);
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 12px;
+  }
+  .link-apply-info-item {
+    margin: 8px 0;
+    font-size: 14px;
+    color: var(--font-color, #555);
+  }
+  .link-apply-info-item code {
+    background: var(--card-bg, #fff);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #49b1f5;
+  }
+  .link-apply-label {
+    font-weight: 500;
+  }
+  .link-apply-notice {
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: rgba(73, 177, 245, 0.1);
+    border-left: 3px solid #49b1f5;
+    border-radius: 4px;
+    color: var(--font-color, #555);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+</style>

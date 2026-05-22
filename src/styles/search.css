@@ -171,13 +171,15 @@
   font-size: 15px !important;
 }
 
-/* 彻底隐藏 Pagefind 默认搜索图标 */
-#pagefind-container .pagefind-ui__search-inputs > :first-child,
+/* 彻底隐藏 Pagefind 默认搜索图标 - 多重选择器确保覆盖 */
+#pagefind-container .pagefind-ui__search-input-wrapper::before,
+#pagefind-container .pagefind-ui__search-input-wrapper::after,
+#pagefind-container .pagefind-ui__search-inputs > :first-child:not(input):not(.pagefind-ui__search-input):not(.pagefind-ui__search-clear),
 #pagefind-container .pagefind-ui__search-inputs > div:first-of-type,
 #pagefind-container .pagefind-ui__search-inputs button:not(.pagefind-ui__search-clear),
 #pagefind-container .pagefind-ui__search-inputs [data-pficon],
 #pagefind-container .pagefind-ui__search-inputs img,
-#pagefind-container .pagefind-ui__form > div:first-child > :first-child,
+#pagefind-container .pagefind-ui__form > div:first-child > :first-child:not(input),
 #pagefind-container .pagefind-ui__search-inputs svg,
 #pagefind-container .pagefind-ui__search-inputs .pagefind-ui__search-icon {
   display: none !important;
@@ -187,6 +189,15 @@
   visibility: hidden !important;
   position: absolute !important;
   pointer-events: none !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 确保输入框没有被图标挤压 */
+#pagefind-container .pagefind-ui__search-input {
+  padding-left: 20px !important;
 }
 
 /* 清除按钮 */
