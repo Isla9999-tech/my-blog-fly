@@ -45,6 +45,9 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
     devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260521.1
+        version: 4.20260521.1
       '@expressive-code/plugin-collapsible-sections':
         specifier: ^0.39.0
         version: 0.39.0
@@ -149,6 +152,9 @@ packages:
 
   '@clack/prompts@1.2.0':
     resolution: {integrity: sha512-4jmztR9fMqPMjz6H/UZXj0zEmE43ha1euENwkckKKel4XpSfokExPo5AiVStdHSAlHekz4d0CA/r45Ok1E4D3w==}
+
+  '@cloudflare/workers-types@4.20260521.1':
+    resolution: {integrity: sha512-cerUUdckXWiNm0x0XEIomBkr58xja5hn/1F9wzzDfJTE96L98L/Ra0ToTxKfzsXLklPflOagce8Vhg0vx8Ytgw==}
 
   '@ctrl/tinycolor@4.2.0':
     resolution: {integrity: sha512-kzyuwOAQnXJNLS9PSyrk0CWk35nWJW/zl/6KvnTBMFK65gm7U1/Z5BqjxeapjZCIhQcM/DsrEmcbRwDyXyXK4A==}
@@ -2721,6 +2727,8 @@ snapshots:
       fast-string-width: 1.1.0
       fast-wrap-ansi: 0.1.6
       sisteransi: 1.0.5
+
+  '@cloudflare/workers-types@4.20260521.1': {}
 
   '@ctrl/tinycolor@4.2.0': {}
 
