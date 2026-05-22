@@ -146,7 +146,7 @@ const t = useTranslations(lang);
     try {
       const res = await fetch('/api/comments?slug=' + encodeURIComponent(slug));
       if (!res.ok) throw new Error('加载失败');
-      const comments = await res.json();
+      const comments: any[] = await res.json();
       const myId = localStorage.getItem('comment_browser_id') || '';
       if (!comments.length) {
         list.innerHTML = '<div class="comment-empty">暂无评论，来抢沙发吧~</div>';
@@ -197,7 +197,7 @@ const t = useTranslations(lang);
           content
         }),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (!res.ok) throw new Error(data.error || '发送失败');
       contentEl.value = '';
       status.textContent = '发送成功！';
