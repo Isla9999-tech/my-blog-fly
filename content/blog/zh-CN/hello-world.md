@@ -2,8 +2,8 @@
 title: 你好世界
 abbrlink: hello-world
 categories: 生活
-date: 2026-05-22 10:32:05
-updated: 2026-05-22 10:32:05
+date: 2026-05-22 10:34:16
+updated: 2026-05-22 10:34:16
 sticky: 1
 ---
 
@@ -33,6 +33,6 @@ sticky: 1
 - [AstroFly](https://github.com/mocusez/astro-astrofly) — 仿 Butterfly 主题
 - Markdown — 写作格式
 
-> 生命不息，折腾不止。
+> 生活如此无趣，唯一的意义就是去寻找意义本身。
 
 让我们开始吧！
