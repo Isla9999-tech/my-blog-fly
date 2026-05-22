@@ -19,20 +19,9 @@ const CORS_HEADERS = {
 };
 
 async function ensureTable(db: D1Database) {
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS comments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      slug TEXT NOT NULL,
-      nickname TEXT NOT NULL,
-      email TEXT DEFAULT '',
-      browser_id TEXT DEFAULT '',
-      content TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  // Try adding columns if table existed without them
-  try { await db.exec(`ALTER TABLE comments ADD COLUMN email TEXT DEFAULT ''`); } catch {}
-  try { await db.exec(`ALTER TABLE comments ADD COLUMN browser_id TEXT DEFAULT ''`); } catch {}
+  await db.prepare('CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT NOT NULL, nickname TEXT NOT NULL, email TEXT DEFAULT \'\', browser_id TEXT DEFAULT \'\', content TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)').run();
+  try { await db.prepare('ALTER TABLE comments ADD COLUMN email TEXT DEFAULT \'\'').run(); } catch {}
+  try { await db.prepare('ALTER TABLE comments ADD COLUMN browser_id TEXT DEFAULT \'\'').run(); } catch {}
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
